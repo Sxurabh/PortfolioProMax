@@ -11,23 +11,23 @@ import logoPlanetaria from '@/images/logos/planetaria.svg'
 
 const projects = [
   {
-    name: 'Planetaria',
+    name: 'Excel Sales Dashboard',
     description:
-      'Creating technology to empower civilians to explore space on their own terms.',
-    link: { href: 'http://planetaria.tech', label: 'planetaria.tech' },
+      'A dynamic dashboard built in Excel that visualizes monthly sales performance, region-wise breakdown, and product-wise analysis with interactive slicers and KPIs.',
+    link: { href: 'https://github.com/Sxurabh/ExcelProject', label: 'GitHub' },
     logo: logoPlanetaria,
   },
   {
-    name: 'Animaginary',
+    name: 'SQL Data Exploration',
     description:
-      'High performance web animation library, hand-written in optimized WASM.',
+      'A project focused on querying and analyzing a large retail dataset using advanced SQL techniques like CTEs, window functions, and joins to derive meaningful business insights.',
     link: { href: '#', label: 'github.com' },
     logo: logoAnimaginary,
   },
   {
-    name: 'HelioStream',
+    name: 'Power BI Profitability Report',
     description:
-      'Real-time video streaming library, optimized for interstellar transmission.',
+      'An interactive Power BI report that highlights profitability across product categories and customer segments. Includes custom visuals, drill-through, and DAX-based metrics.',
     link: { href: '#', label: 'github.com' },
     logo: logoHelioStream,
   },
@@ -38,13 +38,7 @@ const projects = [
     link: { href: '#', label: 'github.com' },
     logo: logoCosmos,
   },
-  {
-    name: 'OpenShuttle',
-    description:
-      'The schematics for the first rocket I designed that successfully made it to orbit.',
-    link: { href: '#', label: 'github.com' },
-    logo: logoOpenShuttle,
-  },
+  
 ]
 
 function LinkIcon(props) {
@@ -62,7 +56,7 @@ export default function Projects() {
   return (
     <>
       <Head>
-        <title>Projects - Spencer Sharp</title>
+        <title>Projects - Saurabh Kirve</title>
         <meta
           name="description"
           content="Things I’ve made trying to put my dent in the universe."

@@ -69,8 +69,10 @@ export default function Projects() {
         />
       </Head>
       <SimpleLayout
-        title="Things I’ve made trying to put my dent in the universe."
-        intro="I’ve worked on tons of little projects over the years but these are the ones that I’m most proud of. Many of them are open-source, so if you see something that piques your interest, check out the code and contribute if you have ideas for how it can be improved."
+        title="Projects I’ve built to turn data into powerful stories.
+
+"
+        intro="Over the years, I’ve worked on several data-centric projects that bring insights to life. Below are the ones I’m most proud of—each solving a specific problem using tools like Excel, SQL, and Power BI. These projects are designed not just to showcase my skills but also to deliver real business value through analytics."
       >
         <ul
           role="list"

@@ -56,7 +56,7 @@ export default function GuestlistPage() {
     currentPage * guestsPerPage
   );
 
-  if (status === "loading") return <div className="p-8 text-center">Loading...</div>;
+  if (status === "loading") return <div className="p-8 text-center hover:hover:text-teal-500 dark:hover:text-teal-400">Loading...</div>;
 
   if (!session) {
     return (
@@ -92,12 +92,12 @@ export default function GuestlistPage() {
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Enter your name"
-          className="border px-3 py-2 flex-grow rounded"
+          className="border px-3 py-2 flex-grow rounded-full dark:bg-zinc-800 dark:text-zinc-200"
         />
         <button
           type="submit"
           disabled={loading}
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+          className="bg-blue-600 text-white px-4 py-2 rounded-full hover:bg-blue-700 transition"
         >
           {loading ? "Adding…" : "Add"}
         </button>
@@ -111,7 +111,7 @@ export default function GuestlistPage() {
           setCurrentPage(1);
         }}
         placeholder="Search guests..."
-        className="mb-4 border px-3 py-2 w-full rounded"
+        className="mb-4 border px-3 py-2 w-full rounded-full dark:bg-zinc-800 dark:text-zinc-200"
       />
 
       <h2 className="text-xl font-semibold mb-3 dark:text-zinc-400">Past Guests</h2>
@@ -125,7 +125,7 @@ export default function GuestlistPage() {
               initial={{ opacity: 0, y: 5 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
-              className="bg-gray-100 p-3 rounded shadow-sm"
+              className="bg-gray-100 p-3 rounded-full shadow-sm dark:bg-zinc-800 dark:text-zinc-200"
             >
               <strong>{g.name}</strong> — added by {g.addedBy} on{" "}
               {new Date(g.date).toLocaleDateString()}

@@ -11,8 +11,13 @@ export default function GuestlistPage() {
   useEffect(() => {
     fetch("/api/guestlist")
       .then(res => res.json())
-      .then(setGuests)
-      .catch(console.error);
+      .then(data => {
+        setGuests(Array.isArray(data) ? data : []); // Ensure guests is always an array
+      })
+      .catch(err => {
+        console.error(err);
+        setGuests([]); // Fallback to an empty array on error
+      });
   }, []);
 
   const addGuest = async (e) => {

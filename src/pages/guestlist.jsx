@@ -56,19 +56,20 @@ export default function GuestlistPage() {
     currentPage * guestsPerPage
   );
 
-  if (status === "loading") return <p className="p-8">Loading session...</p>;
+  if (status === "loading") return <div className="p-8 text-center">Loading...</div>;
 
   if (!session) {
     return (
       <div className="p-8 text-center">
         <Toaster />
-        <h1 className="text-3xl font-bold mb-4">Guestlist</h1>
+        <h1 className="text-3xl font-bold mb-4 dark:text-zinc-400 ">Guestlist</h1>
         <button
-          onClick={() => signIn()}
-          className="bg-black text-white px-6 py-2 rounded hover:bg-gray-800 transition"
-        >
-          Sign in with GitHub or Google
-        </button>
+  onClick={() => signIn(undefined, { redirect: false })}
+  className="bg-black text-white px-6 py-2 rounded-full hover:hover:text-teal-500 dark:hover:text-teal-400 transition"
+>
+  Sign in with GitHub or Google
+</button>
+
       </div>
     );
   }
@@ -76,12 +77,12 @@ export default function GuestlistPage() {
   return (
     <div className="max-w-2xl mx-auto p-8">
       <Toaster />
-      <h1 className="text-3xl font-semibold mb-2">
+      <h1 className="text-3xl font-semibold mb-2 dark:text-zinc-400">
         Welcome, {session.user.name || session.user.login}!
       </h1>
       <button
         onClick={() => signOut()}
-        className="mb-6 text-sm text-blue-500 hover:underline"
+        className="mb-6 text-sm text-blue-500 hover:underline dark:text-zinc-400"
       >
         Sign out
       </button>
@@ -113,7 +114,7 @@ export default function GuestlistPage() {
         className="mb-4 border px-3 py-2 w-full rounded"
       />
 
-      <h2 className="text-xl font-semibold mb-3">Past Guests</h2>
+      <h2 className="text-xl font-semibold mb-3 dark:text-zinc-400">Past Guests</h2>
       <ul className="space-y-2">
         {displayedGuests.length === 0 ? (
           <p>No guests found.</p>

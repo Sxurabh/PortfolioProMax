@@ -58,6 +58,19 @@ export default async function handler(req, res) {
       addedBy: session.user.name || session.user.login,
       date: new Date().toISOString(),
     };
+    
+    // Check if the user already added a guest in the last 24 hours
+    const hasRecentEntry = guests.some(g =>
+      g.addedBy === newGuest.addedBy &&
+      new Date() - new Date(g.date) < 24 * 60 * 60 * 1000
+    );
+    
+    if (hasRecentEntry) {
+      return res.status(403).json({ success: false, error: "You can only add one entry every 24 hours." });
+    }
+    
+    guests.push(newGuest);
+    
 
     guests.push(newGuest);
 

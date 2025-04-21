@@ -3,34 +3,25 @@ import { signIn, signOut, useSession } from "next-auth/react";
 import { toast, Toaster } from "react-hot-toast";
 import { motion } from "framer-motion";
 
-const ADMIN_EMAIL = "youradmin@example.com"; // Replace with your real admin email
-
 export default function GuestlistPage() {
   const { data: session, status } = useSession();
   const [guests, setGuests] = useState([]);
   const [name, setName] = useState("");
-  const [editingId, setEditingId] = useState(null);
-  const [editName, setEditName] = useState("");
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const guestsPerPage = 5;
+  const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL;
 
-  const isAdmin = session?.user?.email === ADMIN_EMAIL;
-
-  const fetchGuests = async () => {
-    const res = await fetch("/api/guestlist");
-    const data = await res.json();
-    if (res.ok) {
-      setGuests(data.guests || []);
-    } else {
-      toast.error("Failed to fetch guest list.");
-    }
-  };
+  const isAdmin = session?.user?.email === adminEmail;
 
   useEffect(() => {
-    fetchGuests();
-  }, []);
+    if (!session) return;
+    fetch("/api/guestlist")
+      .then(res => res.json())
+      .then(data => setGuests(Array.isArray(data) ? data : []))
+      .catch(() => toast.error("Failed to fetch guest list"));
+  }, [session]);
 
   const addGuest = async (e) => {
     e.preventDefault();
@@ -43,45 +34,38 @@ export default function GuestlistPage() {
       body: JSON.stringify({ name }),
     });
 
-    const data = await res.json();
-    if (res.ok) {
-      setName("");
-      toast.success("Added to guest list!");
-      fetchGuests();
-    } else {
-      toast.error(data.error || "Something went wrong");
+    try {
+      const data = await res.json();
+      if (res.ok) {
+        setGuests([data, ...guests]);
+        setName("");
+        toast.success("Added to guest list!");
+      } else {
+        toast.error(data.message || "Something went wrong");
+      }
+    } catch {
+      toast.error("Server error");
     }
+
     setLoading(false);
   };
 
   const deleteGuest = async (id) => {
-    const res = await fetch(`/api/guestlist/${id}`, { method: "DELETE" });
-    if (res.ok) {
-      toast.success("Entry deleted.");
-      fetchGuests();
-    } else {
-      toast.error("Failed to delete entry.");
-    }
-  };
+    const confirm = window.confirm("Are you sure you want to delete this entry?");
+    if (!confirm) return;
 
-  const startEdit = (guest) => {
-    setEditingId(guest.id);
-    setEditName(guest.name);
-  };
-
-  const updateGuest = async (id) => {
-    const res = await fetch(`/api/guestlist/${id}`, {
-      method: "PUT",
+    const res = await fetch("/api/guestlist/delete", {
+      method: "DELETE",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: editName }),
+      body: JSON.stringify({ id }),
     });
+
     if (res.ok) {
-      toast.success("Entry updated.");
-      setEditingId(null);
-      setEditName("");
-      fetchGuests();
+      setGuests(guests.filter((g) => g.id !== id));
+      toast.success("Guest deleted");
     } else {
-      toast.error("Failed to update entry.");
+      const data = await res.json();
+      toast.error(data.message || "Delete failed");
     }
   };
 
@@ -95,7 +79,7 @@ export default function GuestlistPage() {
     currentPage * guestsPerPage
   );
 
-  if (status === "loading") return <div className="p-8 text-center">Loading...</div>;
+  if (status === "loading") return <div className="p-8 text-center dark:text-zinc-400">Loading...</div>;
 
   if (!session) {
     return (
@@ -104,7 +88,7 @@ export default function GuestlistPage() {
         <h1 className="text-3xl font-bold mb-4 dark:text-zinc-400">Guestlist</h1>
         <button
           onClick={() => signIn(undefined, { redirect: false })}
-          className="bg-black text-white px-6 py-2 rounded-xl hover:hover:text-teal-500 dark:hover:text-teal-400 transition"
+          className="bg-black text-white px-6 py-2 rounded-xl hover:text-teal-500 dark:hover:text-teal-400 transition"
         >
           Sign in with GitHub or Google
         </button>
@@ -163,39 +147,19 @@ export default function GuestlistPage() {
               initial={{ opacity: 0, y: 5 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
-              className="bg-gray-100 p-3 rounded-full shadow-sm dark:bg-zinc-800 dark:text-zinc-200"
+              className="bg-gray-100 p-3 rounded-full shadow-sm dark:bg-zinc-800 dark:text-zinc-200 flex justify-between items-center"
             >
-              {editingId === g.id ? (
-                <div className="flex gap-2 items-center">
-                  <input
-                    value={editName}
-                    onChange={(e) => setEditName(e.target.value)}
-                    className="flex-grow px-2 py-1 rounded"
-                  />
-                  <button onClick={() => updateGuest(g.id)} className="text-green-600">
-                    Save
-                  </button>
-                  <button onClick={() => setEditingId(null)} className="text-red-600">
-                    Cancel
-                  </button>
-                </div>
-              ) : (
-                <div className="flex justify-between items-center">
-                  <span>
-                    <strong>{g.name}</strong> — added by {g.addedBy} on{" "}
-                    {new Date(g.date).toLocaleDateString()}
-                  </span>
-                  {isAdmin && (
-                    <div className="flex gap-2 ml-4">
-                      <button onClick={() => startEdit(g)} className="text-blue-600 text-sm">
-                        Edit
-                      </button>
-                      <button onClick={() => deleteGuest(g.id)} className="text-red-600 text-sm">
-                        Delete
-                      </button>
-                    </div>
-                  )}
-                </div>
+              <div>
+                <strong>{g.name}</strong> — added by {g.addedBy} on{" "}
+                {new Date(g.createdAt).toLocaleDateString()}
+              </div>
+              {isAdmin && (
+                <button
+                  onClick={() => deleteGuest(g.id)}
+                  className="text-red-500 hover:underline ml-4 text-sm"
+                >
+                  Delete
+                </button>
               )}
             </motion.li>
           ))

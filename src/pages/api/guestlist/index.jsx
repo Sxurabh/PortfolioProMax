@@ -1,48 +1,17 @@
-import { PrismaClient } from "@prisma/client";
-import { getServerSession } from "next-auth";
-import { authOptions } from "../auth/[...nextauth]";
-
-const prisma = new PrismaClient();
+import { prisma } from "@/lib/prisma";
 
 export default async function handler(req, res) {
-  const session = await getServerSession(req, res, authOptions);
-
-  if (!session) return res.status(401).json({ error: "Not authenticated" });
-
-  if (req.method === "GET") {
-    const guests = await prisma.guest.findMany({ orderBy: { createdAt: "desc" } });
-    return res.status(200).json(guests);
+  if (req.method !== "GET") {
+    return res.status(405).json({ error: "Method Not Allowed" });
   }
 
-  if (req.method === "POST") {
-    const { name } = req.body;
-    if (!name) return res.status(400).json({ error: "Name is required" });
-
-    // Check if this user already added entry in last 24 hours
-    const recent = await prisma.guest.findFirst({
-      where: {
-        addedBy: session.user.email || session.user.name,
-        createdAt: {
-          gte: new Date(Date.now() - 24 * 60 * 60 * 1000),
-        },
-      },
+  try {
+    const guests = await prisma.guest.findMany({
+      orderBy: { date: "desc" }
     });
-
-    if (recent) {
-      return res.status(403).json({ error: "You can only add one entry per 24 hours." });
-    }
-
-    const guest = await prisma.guest.create({
-      data: {
-        name: name.trim(),
-        addedBy: session.user.email || session.user.name,
-      },
-    });
-
-    const guests = await prisma.guest.findMany({ orderBy: { createdAt: "desc" } });
-    return res.status(200).json({ success: true, guests });
+    res.status(200).json(guests);
+  } catch (error) {
+    console.error("GET guests error:", error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
-
-  res.setHeader("Allow", ["GET", "POST"]);
-  return res.status(405).end(`Method ${req.method} Not Allowed`);
 }

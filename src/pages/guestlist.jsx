@@ -3,39 +3,40 @@ import { signIn, signOut, useSession } from "next-auth/react";
 import { toast, Toaster } from "react-hot-toast";
 import { motion } from "framer-motion";
 
+const ADMIN_EMAIL = "youradmin@example.com"; // Replace with your real admin email
+
 export default function GuestlistPage() {
   const { data: session, status } = useSession();
   const [guests, setGuests] = useState([]);
   const [name, setName] = useState("");
+  const [editingId, setEditingId] = useState(null);
+  const [editName, setEditName] = useState("");
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [editingId, setEditingId] = useState(null);
-  const [editedName, setEditedName] = useState("");
   const guestsPerPage = 5;
 
-  const isAdmin = session?.user?.email === process.env.NEXT_PUBLIC_ADMIN_EMAIL;
+  const isAdmin = session?.user?.email === ADMIN_EMAIL;
+
+  const fetchGuests = async () => {
+    const res = await fetch("/api/guestlist");
+    const data = await res.json();
+    if (res.ok) {
+      setGuests(data.guests || []);
+    } else {
+      toast.error("Failed to fetch guest list.");
+    }
+  };
 
   useEffect(() => {
     fetchGuests();
   }, []);
 
-  const fetchGuests = async () => {
-    try {
-      const res = await fetch("/api/guestlist");
-      const data = await res.json();
-      setGuests(Array.isArray(data) ? data : []);
-    } catch (err) {
-      toast.error("Failed to fetch guest list.");
-      setGuests([]);
-    }
-  };
-
   const addGuest = async (e) => {
     e.preventDefault();
     if (!name.trim()) return;
-
     setLoading(true);
+
     const res = await fetch("/api/guestlist", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -43,10 +44,10 @@ export default function GuestlistPage() {
     });
 
     const data = await res.json();
-    if (res.ok && data.success) {
-      setGuests(data.guests);
+    if (res.ok) {
       setName("");
       toast.success("Added to guest list!");
+      fetchGuests();
     } else {
       toast.error(data.error || "Something went wrong");
     }
@@ -54,45 +55,34 @@ export default function GuestlistPage() {
   };
 
   const deleteGuest = async (id) => {
-    const res = await fetch(`/api/guestlist/${id}`, {
-      method: "DELETE",
-    });
-
-    const data = await res.json();
-    if (res.ok && data.success) {
-      setGuests(data.guests);
-      toast.success("Entry deleted!");
+    const res = await fetch(`/api/guestlist/${id}`, { method: "DELETE" });
+    if (res.ok) {
+      toast.success("Entry deleted.");
+      fetchGuests();
     } else {
-      toast.error("Failed to delete");
+      toast.error("Failed to delete entry.");
     }
   };
 
-  const startEditing = (id, currentName) => {
-    setEditingId(id);
-    setEditedName(currentName);
+  const startEdit = (guest) => {
+    setEditingId(guest.id);
+    setEditName(guest.name);
   };
 
-  const saveEdit = async () => {
-    const res = await fetch(`/api/guestlist/${editingId}`, {
+  const updateGuest = async (id) => {
+    const res = await fetch(`/api/guestlist/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: editedName }),
+      body: JSON.stringify({ name: editName }),
     });
-
-    const data = await res.json();
-    if (res.ok && data.success) {
-      setGuests(data.guests);
-      toast.success("Guest updated!");
+    if (res.ok) {
+      toast.success("Entry updated.");
       setEditingId(null);
-      setEditedName("");
+      setEditName("");
+      fetchGuests();
     } else {
-      toast.error("Failed to update");
+      toast.error("Failed to update entry.");
     }
-  };
-
-  const cancelEdit = () => {
-    setEditingId(null);
-    setEditedName("");
   };
 
   const filteredGuests = guests.filter((g) =>
@@ -151,25 +141,23 @@ export default function GuestlistPage() {
         </button>
       </form>
 
-      {isAdmin && (
-        <input
-          type="text"
-          value={searchTerm}
-          onChange={(e) => {
-            setSearchTerm(e.target.value);
-            setCurrentPage(1);
-          }}
-          placeholder="Search guests..."
-          className="mb-4 border px-3 py-2 w-full rounded-full dark:bg-zinc-800 dark:text-zinc-200"
-        />
-      )}
+      <input
+        type="text"
+        value={searchTerm}
+        onChange={(e) => {
+          setSearchTerm(e.target.value);
+          setCurrentPage(1);
+        }}
+        placeholder="Search guests..."
+        className="mb-4 border px-3 py-2 w-full rounded-full dark:bg-zinc-800 dark:text-zinc-200"
+      />
 
       <h2 className="text-xl font-semibold mb-3 dark:text-zinc-400">Past Guests</h2>
       <ul className="space-y-2">
         {displayedGuests.length === 0 ? (
           <p>No guests found.</p>
         ) : (
-          displayedGuests.map((g, i) => (
+          displayedGuests.map((g) => (
             <motion.li
               key={g.id}
               initial={{ opacity: 0, y: 5 }}
@@ -178,25 +166,33 @@ export default function GuestlistPage() {
               className="bg-gray-100 p-3 rounded-full shadow-sm dark:bg-zinc-800 dark:text-zinc-200"
             >
               {editingId === g.id ? (
-                <div className="flex items-center gap-2">
+                <div className="flex gap-2 items-center">
                   <input
-                    value={editedName}
-                    onChange={(e) => setEditedName(e.target.value)}
-                    className="flex-grow rounded px-2 py-1 border dark:bg-zinc-700 dark:text-zinc-200"
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    className="flex-grow px-2 py-1 rounded"
                   />
-                  <button onClick={saveEdit} className="text-green-600 font-medium">Save</button>
-                  <button onClick={cancelEdit} className="text-red-500">Cancel</button>
+                  <button onClick={() => updateGuest(g.id)} className="text-green-600">
+                    Save
+                  </button>
+                  <button onClick={() => setEditingId(null)} className="text-red-600">
+                    Cancel
+                  </button>
                 </div>
               ) : (
                 <div className="flex justify-between items-center">
                   <span>
                     <strong>{g.name}</strong> — added by {g.addedBy} on{" "}
-                    {new Date(g.createdAt).toLocaleDateString()}
+                    {new Date(g.date).toLocaleDateString()}
                   </span>
                   {isAdmin && (
-                    <div className="flex gap-2 text-sm ml-4">
-                      <button onClick={() => startEditing(g.id, g.name)} className="text-blue-600">Edit</button>
-                      <button onClick={() => deleteGuest(g.id)} className="text-red-600">Delete</button>
+                    <div className="flex gap-2 ml-4">
+                      <button onClick={() => startEdit(g)} className="text-blue-600 text-sm">
+                        Edit
+                      </button>
+                      <button onClick={() => deleteGuest(g.id)} className="text-red-600 text-sm">
+                        Delete
+                      </button>
                     </div>
                   )}
                 </div>

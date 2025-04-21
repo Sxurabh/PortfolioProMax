@@ -1,19 +1,21 @@
-// deletes guest by index
-import { getServerSession } from "next-auth/next";
+import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]";
-import { getGistGuests, updateGistGuests } from "@/utils/gist";
+import { prisma } from "@/lib/prisma";
 
 export default async function handler(req, res) {
   const session = await getServerSession(req, res, authOptions);
-  const adminEmail = process.env.ADMIN_EMAIL;
 
-  if (session?.user?.email !== adminEmail) {
-    return res.status(403).json({ success: false, error: "Unauthorized" });
+  if (req.method !== "DELETE") return res.status(405).end();
+  if (!session || session.user.email !== process.env.ADMIN_EMAIL) {
+    return res.status(403).json({ error: "Unauthorized" });
   }
 
-  const { index } = req.body;
-  const guests = await getGistGuests();
-  guests.splice(index, 1);
-  await updateGistGuests(guests);
-  res.status(200).json({ success: true, guests });
+  const { id } = req.body;
+
+  try {
+    await prisma.guest.delete({ where: { id } });
+    res.status(200).json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to delete guest" });
+  }
 }

@@ -1,35 +1,37 @@
-import { PrismaClient } from "@prisma/client";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]";
-
-const prisma = new PrismaClient();
+import { prisma } from "@/lib/prisma";
 
 export default async function handler(req, res) {
   const session = await getServerSession(req, res, authOptions);
-  const isAdmin = session?.user?.email === process.env.ADMIN_EMAIL;
 
-  if (!session || !isAdmin) {
-    return res.status(403).json({ error: "Admin access only" });
-  }
+  if (req.method !== "POST") return res.status(405).end();
+  if (!session) return res.status(401).json({ error: "Not authenticated" });
 
-  const { id } = req.query;
+  const { name } = req.body;
+  const addedBy = session.user.name || session.user.login;
 
-  if (req.method === "DELETE") {
-    await prisma.guest.delete({ where: { id: Number(id) } });
-    const guests = await prisma.guest.findMany({ orderBy: { createdAt: "desc" } });
-    return res.status(200).json({ success: true, guests });
-  }
+  if (!name || !addedBy) return res.status(400).json({ error: "Missing data" });
 
-  if (req.method === "PUT") {
-    const { name } = req.body;
-    await prisma.guest.update({
-      where: { id: Number(id) },
-      data: { name },
+  try {
+    // 24-hour restriction
+    const last = await prisma.guest.findFirst({
+      where: { addedBy },
+      orderBy: { date: "desc" }
     });
-    const guests = await prisma.guest.findMany({ orderBy: { createdAt: "desc" } });
-    return res.status(200).json({ success: true, guests });
-  }
 
-  res.setHeader("Allow", ["DELETE", "PUT"]);
-  return res.status(405).end(`Method ${req.method} Not Allowed`);
+    const now = new Date();
+    if (last && (now - new Date(last.date)) / (1000 * 60 * 60) < 24) {
+      return res.status(400).json({ error: "Only 1 entry allowed in 24 hours." });
+    }
+
+    const guest = await prisma.guest.create({
+      data: { name, addedBy }
+    });
+
+    res.status(200).json({ success: true, guest });
+  } catch (error) {
+    console.error("POST error:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
 }

@@ -1,7 +1,5 @@
 import { useState, useEffect } from "react";
 import { signIn, signOut, useSession } from "next-auth/react";
-import { toast, Toaster } from "react-hot-toast";
-import { motion } from "framer-motion";
 
 export default function GuestlistPage() {
   const { data: session, status } = useSession();
@@ -9,8 +7,8 @@ export default function GuestlistPage() {
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const guestsPerPage = 5;
+
+  const isAdmin = session?.user?.email === process.env.NEXT_PUBLIC_ADMIN_EMAIL;
 
   useEffect(() => {
     fetch("/api/guestlist")
@@ -19,7 +17,7 @@ export default function GuestlistPage() {
         setGuests(Array.isArray(data) ? data : []);
       })
       .catch(err => {
-        toast.error("Failed to fetch guest list.");
+        console.error(err);
         setGuests([]);
       });
   }, []);
@@ -27,8 +25,8 @@ export default function GuestlistPage() {
   const addGuest = async (e) => {
     e.preventDefault();
     if (!name.trim()) return;
-
     setLoading(true);
+
     const res = await fetch("/api/guestlist/add", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -39,118 +37,130 @@ export default function GuestlistPage() {
     if (res.ok && data.success) {
       setGuests(data.guests);
       setName("");
-      toast.success("Added to guest list!");
     } else {
-      toast.error(data.error || "Something went wrong");
+      alert(data.error || "Something went wrong");
     }
     setLoading(false);
   };
 
-  const filteredGuests = guests.filter((g) =>
-    g.name.toLowerCase().includes(searchTerm.toLowerCase())
+  const deleteGuest = async (index) => {
+    if (!confirm("Delete this entry?")) return;
+
+    const res = await fetch("/api/guestlist/delete", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ index }),
+    });
+
+    const data = await res.json();
+    if (res.ok && data.success) {
+      setGuests(data.guests);
+    } else {
+      alert(data.error || "Failed to delete");
+    }
+  };
+
+  const editGuest = async (index, newName) => {
+    const res = await fetch("/api/guestlist/edit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ index, newName }),
+    });
+
+    const data = await res.json();
+    if (res.ok && data.success) {
+      setGuests(data.guests);
+    } else {
+      alert(data.error || "Failed to edit");
+    }
+  };
+
+  const filteredGuests = guests.filter((guest) =>
+    guest.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const totalPages = Math.ceil(filteredGuests.length / guestsPerPage);
-  const displayedGuests = filteredGuests.slice(
-    (currentPage - 1) * guestsPerPage,
-    currentPage * guestsPerPage
-  );
-
-  if (status === "loading") return <div className="p-8 text-center hover:hover:text-teal-500 dark:hover:text-teal-400">Loading...</div>;
+  if (status === "loading") return <p className="p-8">Loading session...</p>;
 
   if (!session) {
     return (
-      <div className="p-8 text-center">
-        <Toaster />
-        <h1 className="text-3xl font-bold mb-4 dark:text-zinc-400 ">Guestlist</h1>
+      <div className="p-8">
+        <h1 className="text-xl font-semibold mb-2">Guestlist</h1>
         <button
-  onClick={() => signIn(undefined, { redirect: false })}
-  className="bg-black text-white px-6 py-2 rounded-full hover:hover:text-teal-500 dark:hover:text-teal-400 transition"
->
-  Sign in with GitHub or Google
-</button>
-
+          onClick={() => signIn(undefined, { callbackUrl: "/" })}
+          className="bg-black text-white px-4 py-2 rounded"
+        >
+          Sign in
+        </button>
       </div>
     );
   }
 
   return (
-    <div className="max-w-2xl mx-auto p-8">
-      <Toaster />
-      <h1 className="text-3xl font-semibold mb-2 dark:text-zinc-400">
+    <div className="p-8 max-w-2xl mx-auto">
+      <h1 className="text-xl font-semibold">
         Welcome, {session.user.name || session.user.login}!
       </h1>
       <button
         onClick={() => signOut()}
-        className="mb-6 text-sm text-blue-500 hover:underline dark:text-zinc-400"
+        className="bg-gray-200 px-3 py-1 rounded my-4"
       >
         Sign out
       </button>
 
-      <form onSubmit={addGuest} className="mb-6 flex gap-2">
+      <form onSubmit={addGuest} className="mb-6">
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="Enter your name"
-          className="border px-3 py-2 flex-grow rounded-full dark:bg-zinc-800 dark:text-zinc-200"
+          placeholder="Your name"
+          className="border px-2 py-1 mr-2 rounded w-2/3"
         />
         <button
           type="submit"
           disabled={loading}
-          className="bg-blue-600 text-white px-4 py-2 rounded-full hover:bg-blue-700 transition"
+          className="bg-blue-500 text-white px-4 py-1 rounded"
         >
-          {loading ? "Adding…" : "Add"}
+          {loading ? "Adding…" : "Add to Guestlist"}
         </button>
       </form>
 
-      <input
-        type="text"
-        value={searchTerm}
-        onChange={(e) => {
-          setSearchTerm(e.target.value);
-          setCurrentPage(1);
-        }}
-        placeholder="Search guests..."
-        className="mb-4 border px-3 py-2 w-full rounded-full dark:bg-zinc-800 dark:text-zinc-200"
-      />
-
-      <h2 className="text-xl font-semibold mb-3 dark:text-zinc-400">Past Guests</h2>
-      <ul className="space-y-2">
-        {displayedGuests.length === 0 ? (
-          <p>No guests found.</p>
-        ) : (
-          displayedGuests.map((g, i) => (
-            <motion.li
-              key={i}
-              initial={{ opacity: 0, y: 5 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}
-              className="bg-gray-100 p-3 rounded-full shadow-sm dark:bg-zinc-800 dark:text-zinc-200"
-            >
-              <strong>{g.name}</strong> — added by {g.addedBy} on{" "}
-              {new Date(g.date).toLocaleDateString()}
-            </motion.li>
-          ))
-        )}
-      </ul>
-
-      {totalPages > 1 && (
-        <div className="flex justify-center mt-6 gap-2">
-          {Array.from({ length: totalPages }, (_, idx) => (
-            <button
-              key={idx + 1}
-              onClick={() => setCurrentPage(idx + 1)}
-              className={`px-3 py-1 border rounded ${
-                currentPage === idx + 1
-                  ? "bg-blue-600 text-white"
-                  : "bg-white text-black"
-              }`}
-            >
-              {idx + 1}
-            </button>
-          ))}
-        </div>
+      {isAdmin && (
+        <input
+          type="text"
+          placeholder="Search guests"
+          className="mb-4 w-full border px-3 py-2 rounded"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
       )}
+
+      <h2 className="text-lg font-medium mb-2">Guest Entries</h2>
+      <ul className="list-disc pl-5 space-y-1">
+        {filteredGuests.map((g, i) => (
+          <li key={i}>
+            <strong>{g.name}</strong> — added by {g.addedBy} on{" "}
+            {new Date(g.date).toLocaleDateString()}
+            {isAdmin && (
+              <span className="ml-2 text-sm">
+                <button
+                  className="text-red-500 hover:underline mr-2"
+                  onClick={() => deleteGuest(i)}
+                >
+                  Delete
+                </button>
+                <button
+                  className="text-blue-500 hover:underline"
+                  onClick={() => {
+                    const newName = prompt("New name:", g.name);
+                    if (newName && newName !== g.name) editGuest(i, newName);
+                  }}
+                >
+                  Edit
+                </button>
+              </span>
+            )}
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

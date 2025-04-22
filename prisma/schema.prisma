@@ -13,3 +13,22 @@ model Guest {
   addedBy   String
   createdAt DateTime @default(now())
 }
+> tailwindui-template@0.1.0 dev
+> next dev
+
+ready - started server on 0.0.0.0:3000, url: http://localhost:3000
+info  - Loaded env from I:\PortfolioProMax\.env
+warn  - You have enabled experimental features (newNextLinkBehavior, scrollRestoration) in next.config.mjs.
+warn  - Experimental features are not covered by semver, and may cause unexpected or broken application behavior. Use at your own risk.
+
+Browserslist: caniuse-lite is outdated. Please run:
+  npx browserslist@latest --update-db
+  Why you should do it regularly: https://github.com/browserslist/browserslist#browsers-data-updating
+info  - automatically enabled Fast Refresh for 1 custom loader
+event - compiled client and server successfully in 482 ms (349 modules)
+wait  - compiling /_error (client and server)...
+event - compiled client and server successfully in 101 ms (350 modules)
+wait  - compiling /api/auth/[...nextauth] (client and server)...
+event - compiled successfully in 45 ms (98 modules)
+wait  - compiling /guestlist (client and server)...
+event - compiled client and server successfully in 394 ms (745 modules)

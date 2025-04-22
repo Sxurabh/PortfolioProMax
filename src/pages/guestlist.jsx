@@ -28,44 +28,48 @@ export default function GuestlistPage() {
     if (!name.trim()) return;
     setLoading(true);
 
-    const res = await fetch("/api/guestlist", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name }),
-    });
-
     try {
+      const res = await fetch("/api/guestlist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name }),
+      });
+
       const data = await res.json();
       if (res.ok) {
         setGuests([data, ...guests]);
         setName("");
         toast.success("Added to guest list!");
       } else {
-        toast.error(data.message || "Something went wrong");
+        toast.error(data.message || "Could not add guest.");
       }
     } catch {
-      toast.error("Server error");
+      toast.error("Server error. Try again later.");
     }
 
     setLoading(false);
   };
 
   const deleteGuest = async (id) => {
-    const confirm = window.confirm("Are you sure you want to delete this entry?");
-    if (!confirm) return;
+    const confirmDelete = window.confirm("Are you sure you want to delete this entry?");
+    if (!confirmDelete) return;
 
-    const res = await fetch("/api/guestlist/delete", {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id }),
-    });
+    try {
+      const res = await fetch("/api/guestlist", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
 
-    if (res.ok) {
-      setGuests(guests.filter((g) => g.id !== id));
-      toast.success("Guest deleted");
-    } else {
-      const data = await res.json();
-      toast.error(data.message || "Delete failed");
+      if (res.ok) {
+        setGuests(guests.filter((g) => g.id !== id));
+        toast.success("Guest deleted");
+      } else {
+        const data = await res.json();
+        toast.error(data.message || "Failed to delete guest");
+      }
+    } catch {
+      toast.error("Delete failed. Try again.");
     }
   };
 

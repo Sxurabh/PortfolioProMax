@@ -10,7 +10,7 @@ const nextConfig = {
   experimental: {
     newNextLinkBehavior: true,
     scrollRestoration: true,
-    appDir: false
+    
   },
 }
 

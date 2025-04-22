@@ -4,33 +4,33 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-export default async function handler(req, res) {
-  if (req.method === 'POST') {
+export default function handler(req, res) {
+  if (req.method === "POST") {
     const { name } = req.body;
-    const session = req.headers.authorization || null;
 
-    try {
-      const guest = await prisma.guest.create({
-        data: {
-          name,
-          addedBy: session || 'Anonymous',
-        },
-      });
-      res.status(200).json(guest);
-    } catch (error) {
-      res.status(500).json({ message: 'Failed to add guest.' });
+    if (!name) {
+      return res.status(400).json({ message: "Name is required" });
     }
-  } else if (req.method === 'GET') {
-    try {
-      const guests = await prisma.guest.findMany({
-        orderBy: { createdAt: 'desc' },
-      });
-      res.status(200).json(guests);
-    } catch (error) {
-      res.status(500).json({ message: 'Failed to fetch guests.' });
-    }
+
+    // Simulate adding the guest to a database
+    const newGuest = {
+      id: Date.now(),
+      name,
+      addedBy: "Admin", // Replace with session user if applicable
+      createdAt: new Date().toISOString(),
+    };
+
+    return res.status(200).json(newGuest);
+  } else if (req.method === "GET") {
+    // Simulate fetching guests from a database
+    const guests = [
+      { id: 1, name: "John Doe", addedBy: "Admin", createdAt: "2025-04-20T12:00:00Z" },
+    ];
+
+    return res.status(200).json(guests);
   } else {
-    res.setHeader('Allow', ['POST', 'GET']);
-    res.status(405).end(`Method ${req.method} Not Allowed`);
+    // Method not allowed
+    res.setHeader("Allow", ["POST", "GET"]);
+    return res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 }

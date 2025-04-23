@@ -17,7 +17,7 @@ export default function GuestlistPage() {
 
   useEffect(() => {
     if (!session) return;
-    fetch("/api/guestlist")
+    fetch("/api/guestlist-test")
       .then(res => res.json())
       .then(data => setGuests(Array.isArray(data) ? data : []))
       .catch(() => toast.error("Failed to fetch guest list"));
@@ -29,7 +29,7 @@ export default function GuestlistPage() {
     setLoading(true);
 
     try {
-      const res = await fetch("/api/guestlist", {
+      const res = await fetch("/api/guestlist-test", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name }),
@@ -55,7 +55,7 @@ export default function GuestlistPage() {
     if (!confirmDelete) return;
 
     try {
-      const res = await fetch("/api/guestlist", {
+      const res = await fetch("/api/guestlist-test", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id }),

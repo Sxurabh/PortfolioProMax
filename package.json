@@ -10,6 +10,9 @@
   },
   "browserslist": "defaults, not ie <= 11",
   "dependencies": {
+    "@fortawesome/fontawesome-svg-core": "^6.7.2",
+    "@fortawesome/free-solid-svg-icons": "^6.7.2",
+    "@fortawesome/react-fontawesome": "^0.2.2",
     "@headlessui/react": "^1.7.0",
     "@mapbox/rehype-prism": "^0.8.0",
     "@mdx-js/loader": "^2.1.2",
@@ -31,6 +34,7 @@
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-hot-toast": "^2.5.2",
+    "react-icons": "^5.5.0",
     "remark-gfm": "^3.0.1",
     "tailwindcss": "^3.1.4"
   },

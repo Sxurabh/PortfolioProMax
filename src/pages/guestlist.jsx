@@ -11,6 +11,7 @@ export default function GuestlistPage() {
   const [guests, setGuests] = useState([]);
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [fetchingGuests, setFetchingGuests] = useState(true);
   const [editingId, setEditingId] = useState(null);
   const [editedName, setEditedName] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
@@ -22,10 +23,12 @@ export default function GuestlistPage() {
 
   useEffect(() => {
     if (!session) return;
+    setFetchingGuests(true);
     fetch("/api/guestlist-test")
       .then((res) => res.json())
       .then((data) => setGuests(Array.isArray(data) ? data : []))
-      .catch(() => toast.error("Failed to fetch guest list"));
+      .catch(() => toast.error("Failed to fetch guest list"))
+      .finally(() => setFetchingGuests(false));
   }, [session]);
 
   const addGuest = async (e) => {
@@ -55,7 +58,7 @@ export default function GuestlistPage() {
 
   const deleteGuest = async (id) => {
     if (!confirm("Are you sure you want to delete this entry?")) return;
-
+    setLoading(true);
     try {
       const res = await fetch("/api/guestlist-test", {
         method: "DELETE",
@@ -73,11 +76,13 @@ export default function GuestlistPage() {
     } catch {
       toast.error("Delete failed. Try again.");
     }
+    setLoading(false);
   };
 
   const updateGuest = async (id) => {
     if (!editedName.trim()) return toast.error("Name cannot be empty");
 
+    setLoading(true);
     try {
       const res = await fetch("/api/guestlist-test", {
         method: "PUT",
@@ -100,6 +105,7 @@ export default function GuestlistPage() {
     } catch {
       toast.error("Update failed");
     }
+    setLoading(false);
   };
 
   const filteredGuests = guests.filter((g) =>
@@ -112,120 +118,155 @@ export default function GuestlistPage() {
     currentPage * guestsPerPage
   );
 
-  if (status === "loading") return <div className="p-8 text-center">Loading...</div>;
+  if (status === "loading") return <div className="p-8 text-center">Loading session...</div>;
 
   if (!session) {
     return (
-      <div className="p-8 text-center">
+      <div className="flex flex-col justify-center items-center h-screen gap-6 px-6">
         <Toaster />
-        <h1 className="text-4xl font-bold tracking-tight text-zinc-800 dark:text-zinc-100 sm:text-5xl">Be my guest and leave a message! :)</h1>
+        <h1 className="text-3xl sm:text-5xl font-bold text-center text-zinc-900 dark:text-white">
+          Be my guest 
+          and add your name to the list! 
+        </h1>
         <button
           onClick={() => signIn()}
-          className="bg-zinc-600 dark:bg-zinc-600 text-white dark:text-black dark:hover:text-teal-400 px-6 py-2 rounded-xl hover:text-teal-400 transition"
+          className="px-6 py-3 bg-zinc-800 text-white dark:bg-zinc-700 rounded-xl dark:hover:bg-teal-500 hover:bg-teal-500 hover:scale-105 transition transform"
         >
-          Sign in with GitHub or Google 
+          Sign in with GitHub or Google
         </button>
       </div>
     );
   }
 
   return (
-    <div className="max-w-2xl mx-auto p-6">
+    <div className="max-w-2xl mx-auto p-4 sm:p-6">
       <Toaster />
-      <h1 className="text-2xl font-bold mb-2 dark:text-zinc-200">
-        Welcome, {session.user.name || session.user.login}!
-      </h1>
-      <button onClick={() => signOut()} className="mb-6 text-sm text-blue-500 hover:underline">
-        Sign out
-      </button>
 
-      <form onSubmit={addGuest} className="mb-6 flex gap-2">
+      {/* Avatar Section */}
+      <div className="flex items-center gap-4 mb-6">
+        <img
+          src={session.user.image || '/default-avatar.png'}
+          alt="Avatar"
+          className="w-14 h-14 rounded-full border dark:border-zinc-700"
+        />
+        <div>
+          <h2 className="text-2xl font-semibold dark:text-white">{session.user.name}</h2>
+          <button
+            onClick={() => signOut()}
+            className="text-sm text-teal-500 hover:underline"
+          >
+            Sign Out
+          </button>
+        </div>
+      </div>
+
+      {/* Add Form */}
+      <form onSubmit={addGuest} className="flex flex-col sm:flex-row gap-3 mb-6">
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Enter your name"
-          maxLength={50}
-          className="border px-3 py-2 flex-grow rounded-full dark:bg-zinc-800 dark:text-white"
+          className="flex-1 px-4 py-2 border rounded-xl dark:bg-zinc-800 dark:text-white"
         />
         <button
           type="submit"
           disabled={loading}
-          className="bg-blue-600 text-white px-4 py-2 rounded-full hover:bg-blue-700 flex items-center gap-2"
+          className="flex items-center justify-center px-4 py-2 bg-teal-500 hover:bg-teal-600 text-white rounded-xl transition transform hover:scale-105"
         >
           {loading ? <FaSpinner className="animate-spin" /> : "Add"}
         </button>
       </form>
 
+      {/* Search */}
       <input
-        type="text"
         value={searchTerm}
         onChange={(e) => {
           setSearchTerm(e.target.value);
           setCurrentPage(1);
         }}
         placeholder="Search guests..."
-        className="mb-4 border px-3 py-2 w-full rounded-full dark:bg-zinc-800 dark:text-white"
+        className="mb-6 w-full px-4 py-2 border rounded-xl dark:bg-zinc-800 dark:text-white"
       />
 
-      <ul className="space-y-2">
+      {/* Guest List */}
+      <ul className="space-y-4">
         <AnimatePresence>
-          {displayedGuests.length === 0 ? (
+          {fetchingGuests ? (
             <motion.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="text-gray-500"
+              className="text-center text-gray-500 dark:text-gray-400"
             >
-              No guests found.
+              Fetching guest list...
+            </motion.p>
+          ) : displayedGuests.length === 0 ? (
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="text-center text-gray-500 dark:text-gray-400"
+            >
+              No guests yet. Add the first! 🚀
             </motion.p>
           ) : (
             displayedGuests.map((g) => (
               <motion.li
                 key={g.id}
-                initial={{ opacity: 0, y: 4 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.25 }}
-                className={`p-3 rounded-full shadow-sm dark:bg-zinc-800 dark:text-white flex justify-between items-center ${
-                  g.addedBy === session.user.name ? "border-l-4 border-blue-400" : ""
-                }`}
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.2 }}
+                className="p-2 rounded-xl border dark:border-zinc-700 shadow-sm flex justify-between items-center dark:bg-zinc-800"
               >
-                <div className="flex-grow">
+                <div>
                   {editingId === g.id ? (
-                    <div className="flex gap-2">
+                    <div className="flex flex-col sm:flex-row gap-2">
                       <input
                         value={editedName}
                         onChange={(e) => setEditedName(e.target.value)}
-                        className="border px-2 py-1 rounded dark:bg-zinc-700"
+                        className="px-2 py-1 border rounded dark:bg-zinc-700 dark:text-white"
                       />
-                      <button onClick={() => updateGuest(g.id)} className="text-green-500 text-sm">
-                        Save
-                      </button>
-                      <button onClick={() => setEditingId(null)} className="text-gray-500 text-sm">
-                        Cancel
-                      </button>
+                      <div className="flex gap-2 mt-2 sm:mt-0">
+                        <button
+                          onClick={() => updateGuest(g.id)}
+                          className="text-green-500 hover:underline text-sm"
+                        >
+                          Save
+                        </button>
+                        <button
+                          onClick={() => setEditingId(null)}
+                          className="text-gray-400 hover:underline text-sm"
+                        >
+                          Cancel
+                        </button>
+                      </div>
                     </div>
                   ) : (
                     <>
-                      <strong>{g.name}</strong> — added by {g.addedBy} on{" "}
-                      {new Date(g.createdAt).toLocaleDateString()}
+                      <h3 className="font-semibold dark:text-white">{g.name}</h3>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        Added by {g.addedBy} • {new Date(g.createdAt).toLocaleDateString()}
+                      </p>
                     </>
                   )}
                 </div>
+
+                {/* Admin Actions */}
                 {isAdmin && editingId !== g.id && (
-                  <div className="flex gap-2 ml-4">
+                  <div className="flex gap-2 ml-2">
                     <button
                       onClick={() => {
                         setEditingId(g.id);
                         setEditedName(g.name);
                       }}
-                      className="text-blue-500 hover:underline text-sm"
+                      className="text-blue-400 hover:underline text-sm"
                     >
                       Edit
                     </button>
                     <button
                       onClick={() => deleteGuest(g.id)}
-                      className="text-red-500 hover:underline text-sm"
+                      className="text-red-400 hover:underline text-sm"
                     >
                       Delete
                     </button>
@@ -237,16 +278,17 @@ export default function GuestlistPage() {
         </AnimatePresence>
       </ul>
 
+      {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex justify-center mt-6 gap-2">
+        <div className="flex justify-center items-center mt-6 gap-2 overflow-x-auto">
           {Array.from({ length: totalPages }, (_, idx) => (
             <button
               key={idx + 1}
               onClick={() => setCurrentPage(idx + 1)}
-              className={`px-3 py-1 border rounded-full ${
+              className={`px-4 py-2 rounded-full ${
                 currentPage === idx + 1
-                  ? "bg-blue-600 text-white"
-                  : "bg-white text-black dark:bg-zinc-700 dark:text-white"
+                  ? "bg-teal-500 text-white"
+                  : "bg-gray-200 text-black dark:bg-zinc-700 dark:text-white"
               }`}
             >
               {idx + 1}

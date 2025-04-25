@@ -1,10 +1,5 @@
 {
-    "version": 2,
-    "name": "Book-Store",
-    "builds": [
-       { "src": "index.js", "use": "@vercel/node" }
-    ],
-    "routes": [
-       { "src": "/(.*)", "dest": "/index.js" }
+    "rewrites": [
+      { "source": "/api/:path*", "destination": "/api/:path*" }
     ]
- }
+  }

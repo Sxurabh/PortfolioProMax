@@ -1,23 +1,28 @@
-import glob from 'fast-glob'
-import * as path from 'path'
+// lib/getAllArticles.js
 
-async function importArticle(articleFilename) {
-  let { meta, default: component } = await import(
-    `../pages/articles/${articleFilename}`
-  )
-  return {
-    slug: articleFilename.replace(/(\/index)?\.mdx$/, ''),
-    ...meta,
-    component,
-  }
-}
+import prisma from '@/lib/prisma';
 
 export async function getAllArticles() {
-  let articleFilenames = await glob(['*.mdx', '*/index.mdx'], {
-    cwd: path.join(process.cwd(), 'src/pages/articles'),
-  })
+  try {
+    const articles = await prisma.article.findMany({
+      orderBy: {
+        createdAt: 'desc',
+      },
+      select: {
+        id: true,
+        slug: true,
+        title: true,
+        description: true,
+        createdAt: true,
+      },
+    });
 
-  let articles = await Promise.all(articleFilenames.map(importArticle))
-
-  return articles.sort((a, z) => new Date(z.date) - new Date(a.date))
+    return articles.map(({ createdAt, ...article }) => ({
+      ...article,
+      date: createdAt.toISOString(), // Map createdAt to date
+    }));
+  } catch (error) {
+    console.error('Error fetching articles:', error);
+    return [];
+  }
 }

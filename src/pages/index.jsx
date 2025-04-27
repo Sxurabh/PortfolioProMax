@@ -1,29 +1,29 @@
-import Image from 'next/future/image'
-import Head from 'next/head'
-import Link from 'next/link'
-import clsx from 'clsx'
+import Image from 'next/image'; // Updated from next/future/image
+import Head from 'next/head';
+import Link from 'next/link';
+import clsx from 'clsx';
 
-import { Button } from '@/components/Button'
-import { Card } from '@/components/Card'
-import { Container } from '@/components/Container'
+import { Button } from '@/components/Button';
+import { Card } from '@/components/Card';
+import { Container } from '@/components/Container';
 import {
   TwitterIcon,
   InstagramIcon,
   GitHubIcon,
   LinkedInIcon,
-} from '@/components/SocialIcons'
-import image1 from '@/images/photos/image-1.jpg'
-import image2 from '@/images/photos/image-2.jpg'
-import image3 from '@/images/photos/image-3.jpg'
-import image4 from '@/images/photos/image-4.jpg'
-import image5 from '@/images/photos/image-5.jpg'
-import logoAirbnb from '@/images/logos/airbnb.svg'
-import logoFacebook from '@/images/logos/facebook.svg'
-import logoPlanetaria from '@/images/logos/planetaria.svg'
-import logoStarbucks from '@/images/logos/starbucks.svg'
-import { generateRssFeed } from '@/lib/generateRssFeed'
-import { getAllArticles } from '@/lib/getAllArticles'
-import { formatDate } from '@/lib/formatDate'
+} from '@/components/SocialIcons';
+import image1 from '@/images/photos/image-1.jpg';
+import image2 from '@/images/photos/image-2.jpg';
+import image3 from '@/images/photos/image-3.jpg';
+import image4 from '@/images/photos/image-4.jpg';
+import image5 from '@/images/photos/image-5.jpg';
+import logoAirbnb from '@/images/logos/airbnb.svg';
+import logoFacebook from '@/images/logos/facebook.svg';
+import logoPlanetaria from '@/images/logos/planetaria.svg';
+import logoStarbucks from '@/images/logos/starbucks.svg';
+import { generateRssFeed } from '@/lib/generateRssFeed';
+import { getAllArticles } from '@/lib/getAllArticles';
+import { formatDate } from '@/lib/formatDate';
 
 function MailIcon(props) {
   return (
@@ -45,7 +45,7 @@ function MailIcon(props) {
         className="stroke-zinc-400 dark:stroke-zinc-500"
       />
     </svg>
-  )
+  );
 }
 
 function BriefcaseIcon(props) {
@@ -68,7 +68,7 @@ function BriefcaseIcon(props) {
         className="stroke-zinc-400 dark:stroke-zinc-500"
       />
     </svg>
-  )
+  );
 }
 
 function ArrowDownIcon(props) {
@@ -81,7 +81,7 @@ function ArrowDownIcon(props) {
         strokeLinejoin="round"
       />
     </svg>
-  )
+  );
 }
 
 function Article({ article }) {
@@ -96,7 +96,7 @@ function Article({ article }) {
       <Card.Description>{article.description}</Card.Description>
       <Card.Cta>Read article</Card.Cta>
     </Card>
-  )
+  );
 }
 
 function SocialLink({ icon: Icon, ...props }) {
@@ -104,7 +104,7 @@ function SocialLink({ icon: Icon, ...props }) {
     <Link className="group -m-1 p-1" {...props}>
       <Icon className="h-6 w-6 fill-zinc-500 transition group-hover:fill-zinc-600 dark:fill-zinc-400 dark:group-hover:fill-zinc-300" />
     </Link>
-  )
+  );
 }
 
 function Newsletter() {
@@ -133,14 +133,14 @@ function Newsletter() {
         </Button>
       </div>
     </form>
-  )
+  );
 }
 
 function Resume() {
   let resume = [
     {
       company: 'SG Analytics',
-      title: ' Data Analyst',
+      title: 'Data Analyst',
       logo: logoPlanetaria,
       start: '2023',
       end: {
@@ -148,15 +148,14 @@ function Resume() {
         dateTime: new Date().getFullYear(),
       },
     },
-    
     {
-      company: 'eClerx ',
+      company: 'eClerx',
       title: 'Analyst',
       logo: logoStarbucks,
       start: '2022',
       end: '2023',
     },
-  ]
+  ];
 
   return (
     <div className="rounded-2xl border border-zinc-100 p-6 dark:border-zinc-700/40">
@@ -203,11 +202,11 @@ function Resume() {
         <ArrowDownIcon className="h-4 w-4 stroke-zinc-400 transition group-active:stroke-zinc-600 dark:group-hover:stroke-zinc-50 dark:group-active:stroke-zinc-50" />
       </Button>
     </div>
-  )
+  );
 }
 
 function Photos() {
-  let rotations = ['rotate-2', '-rotate-2', 'rotate-2', 'rotate-2', '-rotate-2']
+  let rotations = ['rotate-2', '-rotate-2', 'rotate-2', 'rotate-2', '-rotate-2'];
 
   return (
     <div className="mt-16 sm:mt-20">
@@ -217,7 +216,7 @@ function Photos() {
             key={image.src}
             className={clsx(
               'relative aspect-[9/10] w-44 flex-none overflow-hidden rounded-xl bg-zinc-100 dark:bg-zinc-800 sm:w-72 sm:rounded-2xl',
-              rotations[imageIndex % rotations.length]
+              rotations[imageIndex % rotations.length],
             )}
           >
             <Image
@@ -230,19 +229,17 @@ function Photos() {
         ))}
       </div>
     </div>
-  )
+  );
 }
 
 export default function Home({ articles }) {
   return (
     <>
       <Head>
-        <title>
-          Saurabh Kirve - Data Analyst
-        </title>
+        <title>Saurabh Kirve - Data Analyst</title>
         <meta
           name="description"
-          content="I’m Spencer, a software designer and entrepreneur based in New York City. I’m the founder and CEO of Planetaria, where we develop technologies that empower regular people to explore space on their own terms."
+          content="I’m Saurabh, an experienced Data Analyst proficient in creating comprehensive case studies to drive data-driven decisions. Skilled in data visualization, cleansing, and collection using Tableau, Python, and Excel."
         />
       </Head>
       <Container className="mt-9">
@@ -251,7 +248,16 @@ export default function Home({ articles }) {
             Saurabh Kirve
           </h1>
           <p className="mt-6 text-base text-zinc-600 dark:text-zinc-400">
-          Hello ! I'm Saurabh, experienced Data Analyst proficient in creating comprehensive case studies to drive data-driven decisions. Skilled in data visualization, cleansing, and collection using Tableau, Python, and Excel. Committed to data ethics and integrity, with expertise in SQL querying, metadata analysis, and sample size determination. Knowledgeable in important data warehousing concepts, including ETL processes and dimensional modeling. Proficient in IBM Cognos Analytics for advanced analytics. Strong in problem-solving and decision-making, adept at developing impactful dashboards and pivot tables for effective storytelling. Ready to contribute to business growth through actionable insights.
+            Hello! I'm Saurabh, experienced Data Analyst proficient in creating
+            comprehensive case studies to drive data-driven decisions. Skilled in data
+            visualization, cleansing, and collection using Tableau, Python, and Excel.
+            Committed to data ethics and integrity, with expertise in SQL querying,
+            metadata analysis, and sample size determination. Knowledgeable in important
+            data warehousing concepts, including ETL processes and dimensional
+            modeling. Proficient in IBM Cognos Analytics for advanced analytics. Strong
+            in problem-solving and decision-making, adept at developing impactful
+            dashboards and pivot tables for effective storytelling. Ready to contribute
+            to business growth through actionable insights.
           </p>
           <div className="mt-6 flex gap-6">
             <SocialLink
@@ -270,9 +276,7 @@ export default function Home({ articles }) {
               icon={GitHubIcon}
             />
             <SocialLink
-              href="www.linkedin.com/in/saurabhkirve
-
-              "
+              href="https://www.linkedin.com/in/saurabhkirve" // Fixed URL
               aria-label="Follow on LinkedIn"
               icon={LinkedInIcon}
             />
@@ -294,19 +298,24 @@ export default function Home({ articles }) {
         </div>
       </Container>
     </>
-  )
+  );
 }
 
 export async function getStaticProps() {
   if (process.env.NODE_ENV === 'production') {
-    await generateRssFeed()
+    await generateRssFeed();
+  }
+
+  let articles = [];
+  try {
+    articles = await getAllArticles();
+  } catch (error) {
+    console.error('Error fetching articles in getStaticProps:', error);
   }
 
   return {
     props: {
-      articles: (await getAllArticles())
-        .slice(0, 4)
-        .map(({ component, ...meta }) => meta),
+      articles: articles.slice(0, 4), // Limit to 4 articles
     },
-  }
+  };
 }

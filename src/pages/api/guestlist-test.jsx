@@ -3,7 +3,7 @@ import { PrismaClient } from '@prisma/client';
 
 
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "./auth/[...nextauth].jsx"; // fixed import path
+import { authOptions } from "@/lib/auth" // fixed import path
 
 const prisma = new PrismaClient(); 
 

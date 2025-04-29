@@ -27,7 +27,7 @@
     "feed": "^4.2.2",
     "focus-visible": "^5.2.0",
     "formidable": "^3.5.4",
-    "framer-motion": "^12.7.4",
+    "framer-motion": "^12.9.2",
     "installed-check": "^6.0.5",
     "next": "^12.3.0",
     "next-auth": "^4.24.11",

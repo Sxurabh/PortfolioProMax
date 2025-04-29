@@ -20,11 +20,10 @@ import logoAirbnb from '@/images/logos/airbnb.svg';
 import logoFacebook from '@/images/logos/facebook.svg';
 import logoPlanetaria from '@/images/logos/planetaria.svg';
 import logoStarbucks from '@/images/logos/starbucks.svg';
-import { generateRssFeed } from '@/lib/generateRssFeed';
 import { formatDate } from '@/lib/formatDate';
 import prisma from '@/lib/prisma';
 import { useSession } from 'next-auth/react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 // Define page size for pagination
 const PAGE_SIZE = 3;
@@ -88,9 +87,51 @@ function ArrowDownIcon(props) {
   );
 }
 
+function ChevronLeftIcon(props) {
+  return (
+    <svg viewBox="0 0 16 16" fill="none" aria-hidden="true" {...props}>
+      <path
+        d="M10.25 4.75 6.75 8l3.5 3.25"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function ChevronRightIcon(props) {
+  return (
+    <svg viewBox="0 0 16 16" fill="none" aria-hidden="true" {...props}>
+      <path
+        d="M5.75 4.75 9.25 8l-3.5 3.25"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function ArrowUpIcon(props) {
+  return (
+    <svg viewBox="0 0 16 16" fill="none" aria-hidden="true" {...props}>
+      <path
+        d="M8 12.25V3.75M3.75 8l4.25-4.25L12.25 8"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 function Article({ article }) {
   return (
-    <Card as="article">
+    <Card
+      as="article"
+      className="transition-transform transform hover:scale-105 hover:shadow-lg"
+    >
       <Card.Title href={`/articles/${article.slug}`}>
         {article.title}
       </Card.Title>
@@ -105,7 +146,7 @@ function Article({ article }) {
 
 function SocialLink({ icon: Icon, ...props }) {
   return (
-    <Link className="group -m-1 p-1" {...props}>
+    <Link className="group -m-1 p-1 focus:outline-none focus:ring-2 focus:ring-teal-500 rounded-full" {...props}>
       <Icon className="h-6 w-6 fill-zinc-500 transition group-hover:fill-zinc-600 dark:fill-zinc-400 dark:group-hover:fill-zinc-300" />
     </Link>
   );
@@ -278,7 +319,7 @@ function Photos() {
           className={clsx(
             'flex sm:justify-center gap-5 py-4 sm:gap-8',
             'overflow-x-auto sm:overflow-hidden',
-            'snap-x snap-mandatory scroll-smooth',
+            'snap-x snap-mandatory',
             'scrollbar-thin scrollbar-thumb-teal-500 scrollbar-track-zinc-200 dark:scrollbar-track-zinc-700',
           )}
         >
@@ -291,24 +332,68 @@ function Photos() {
               )}
             >
               <Image
-  src={image}
-  alt={`Photo ${imageIndex + 1}`}
-  sizes="(min-width: 640px) 18rem, 11rem"
-  className="absolute inset-0 h-full w-full object-cover"
-  priority={imageIndex < 2} // Prioritize first two images
-/>
+                src={image}
+                alt={`Photo ${imageIndex + 1}`}
+                sizes="(min-width: 640px) 18rem, 11rem"
+                className="absolute inset-0 h-full w-full object-cover"
+                priority={imageIndex < 2}
+              />
             </div>
           ))}
         </div>
-        {/* Optional: Add a subtle shadow to indicate scrollability on mobile */}
-        <div className="pointer-events-none absolute inset-y-0 left-0 w-12 bg-gradient-to-r from-white to-transparent dark:from-zinc-900 sm:hidden" />
-        <div className="pointer-events-none absolute inset-y-0 right-0 w-12 bg-gradient-to-l from-white to-transparent dark:from-zinc-900 sm:hidden" />
+        <div className="absolute inset-y-0 left-0 w-12 bg-gradient-to-r from-white to-transparent dark:from-zinc-900 sm:hidden" />
+        <div className="absolute inset-y-0 right-0 w-12 bg-gradient-to-l from-white to-transparent dark:from-zinc-900 sm:hidden" />
       </div>
     </div>
   );
 }
 
+function ScrollToTopButton() {
+  const [isVisible, setIsVisible] = useState(false);
+
+  const toggleVisibility = () => {
+    if (window.scrollY > 300) {
+      setIsVisible(true);
+    } else {
+      setIsVisible(false);
+    }
+  };
+
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth',
+    });
+  };
+
+  useEffect(() => {
+    window.addEventListener('scroll', toggleVisibility);
+    return () => window.removeEventListener('scroll', toggleVisibility);
+  }, []);
+
+  return (
+    <button
+      onClick={scrollToTop}
+      className={clsx(
+        'fixed bottom-6 right-6 p-3 rounded-full bg-teal-500 text-white shadow-lg hover:bg-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 dark:focus:ring-offset-zinc-800 transition-opacity duration-300',
+        isVisible ? 'opacity-100' : 'opacity-0 pointer-events-none',
+      )}
+      aria-label="Scroll to top"
+    >
+      <ArrowUpIcon className="h-5 w-5 stroke-current
+" />
+    </button>
+  );
+}
+
 export default function Home({ articles, totalPages, currentPage }) {
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // Simulate loading state (since getServerSideProps fetches data server-side, this is mostly for UX)
+    setIsLoading(false);
+  }, []);
+
   return (
     <>
       <Head>
@@ -319,11 +404,11 @@ export default function Home({ articles, totalPages, currentPage }) {
         />
       </Head>
       <Container className="mt-9">
-        <div className="max-w-2xl">
-          <h1 className="text-4xl font-bold tracking-tight text-zinc-800 dark:text-zinc-100 sm:text-5xl">
+        <div className="max-w-2xl px-4 sm:px-0">
+          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-zinc-800 dark:text-zinc-100">
             Saurabh Kirve
           </h1>
-          <p className="mt-6 text-base text-zinc-600 dark:text-zinc-400">
+          <p className="mt-4 sm:mt-6 text-sm sm:text-base text-zinc-600 dark:text-zinc-400">
             Hello! I'm Saurabh, experienced Data Analyst proficient in creating
             comprehensive case studies to drive data-driven decisions. Skilled in data
             visualization, cleansing, and collection using Tableau, Python, and Excel.
@@ -335,7 +420,7 @@ export default function Home({ articles, totalPages, currentPage }) {
             dashboards and pivot tables for effective storytelling. Ready to contribute
             to business growth through actionable insights.
           </p>
-          <div className="mt-6 flex gap-6">
+          <div className="mt-4 sm:mt-6 flex flex-wrap gap-4 sm:gap-6">
             <SocialLink
               href="https://twitter.com/sxurxbh"
               aria-label="Follow on Twitter"
@@ -357,33 +442,63 @@ export default function Home({ articles, totalPages, currentPage }) {
               icon={LinkedInIcon}
             />
           </div>
+          <div className="mt-4">
+            
+          </div>
         </div>
       </Container>
       <Photos />
       <Container className="mt-24 md:mt-28">
         <div className="mx-auto grid max-w-xl grid-cols-1 gap-y-20 lg:max-w-none lg:grid-cols-2">
           <div className="flex flex-col gap-16">
-            {articles.map((article) => (
-              <Article key={article.slug} article={article} />
-            ))}
+            {isLoading ? (
+              // Skeleton loader while loading
+              Array.from({ length: PAGE_SIZE }).map((_, idx) => (
+                <div
+                  key={idx}
+                  className="animate-pulse rounded-2xl border border-zinc-100 p-6 dark:border-zinc-700/40"
+                >
+                  <div className="h-6 w-3/4 bg-zinc-200 dark:bg-zinc-700 rounded mb-4"></div>
+                  <div className="h-4 w-1/4 bg-zinc-200 dark:bg-zinc-700 rounded mb-2"></div>
+                  <div className="h-4 w-full bg-zinc-200 dark:bg-zinc-700 rounded mb-2"></div>
+                  <div className="h-4 w-5/6 bg-zinc-200 dark:bg-zinc-700 rounded"></div>
+                </div>
+              ))
+            ) : articles.length === 0 ? (
+              // No articles found message
+              <div className="text-center text-zinc-600 dark:text-zinc-400">
+                <p className="text-lg font-semibold">No Articles Found</p>
+                <p className="mt-2">Check back later for new articles!</p>
+              </div>
+            ) : (
+              articles.map((article) => (
+                <Article key={article.slug} article={article} />
+              ))
+            )}
+            {/* Enhanced Pagination */}
             <div className="flex justify-center mt-12 space-x-2 items-center">
               {currentPage > 1 && (
                 <Link
                   href={`/?page=${currentPage - 1}`}
-                  className="px-3 py-2 rounded-lg text-sm bg-zinc-200 dark:bg-zinc-700 hover:bg-teal-100 dark:hover:bg-teal-700 transition text-black dark:text-white"
+                  className="flex items-center px-3 py-2 rounded-lg text-sm bg-zinc-200 dark:bg-zinc-700 hover:bg-teal-100 dark:hover:bg-teal-700 transition text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  aria-label="Previous page"
                 >
-                  ← Prev
+                  <ChevronLeftIcon className="h-4 w-4 mr-1 stroke-current" />
+                  Prev
                 </Link>
               )}
               {Array.from({ length: totalPages }, (_, idx) => (
                 <Link
                   key={idx}
                   href={`/?page=${idx + 1}`}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium ${
+                  className={clsx(
+                    'px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-teal-500',
                     currentPage === idx + 1
-                      ? 'bg-teal-500 text-white'
-                      : 'bg-zinc-200 dark:bg-zinc-700 hover:bg-teal-100 dark:hover:bg-teal-700 text-black dark:text-white'
-                  }`}
+                      ? 'bg-teal-500 text-white shadow-md'
+                      : 'bg-zinc-200 dark:bg-zinc-700 hover:bg-teal-100 dark:hover:bg-teal-700 text-black dark:text-white',
+                  )}
+                  aria-label={`Go to page ${idx + 1}`}
+                  aria-current={currentPage === idx + 1 ? 'page' : undefined}
                 >
                   {idx + 1}
                 </Link>
@@ -391,9 +506,11 @@ export default function Home({ articles, totalPages, currentPage }) {
               {currentPage < totalPages && (
                 <Link
                   href={`/?page=${currentPage + 1}`}
-                  className="px-3 py-2 rounded-lg text-sm bg-zinc-200 dark:bg-zinc-700 hover:bg-teal-100 dark:hover:bg-teal-700 transition text-black dark:text-white"
+                  className="flex items-center px-3 py-2 rounded-lg text-sm bg-zinc-200 dark:bg-zinc-700 hover:bg-teal-100 dark:hover:bg-teal-700 transition text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  aria-label="Next page"
                 >
-                  Next →
+                  Next
+                  <ChevronRightIcon className="h-4 w-4 ml-1 stroke-current" />
                 </Link>
               )}
             </div>
@@ -404,6 +521,7 @@ export default function Home({ articles, totalPages, currentPage }) {
           </div>
         </div>
       </Container>
+      <ScrollToTopButton />
     </>
   );
 }
@@ -431,10 +549,6 @@ export async function getServerSideProps(context) {
 
     const totalPages = Math.ceil(totalArticles / PAGE_SIZE);
 
-    // if (process.env.NODE_ENV === 'production') {
-    //   await generateRssFeed();
-    // }
-
     return {
       props: {
         articles,
@@ -443,8 +557,11 @@ export async function getServerSideProps(context) {
       },
     };
   } catch (error) {
-    console.error('Error fetching articles in getServerSideProps:', error.message);
-    console.error('Stack trace:', error.stack);
+    console.error('Error in getServerSideProps on homepage:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name,
+    });
     return {
       props: {
         articles: [],

@@ -1,18 +1,20 @@
-// pages/guestlist.jsx
-
 import { useState, useEffect } from "react";
 import { signIn, signOut, useSession } from "next-auth/react";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
 import { toast, Toaster } from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaSpinner } from "react-icons/fa";
-import Head from 'next/head'; // 1. Import the Head component
+import Head from 'next/head';
+import clsx from 'clsx';
 
-export default function GuestlistPage() {
+export default function GuestlistPage({ initialGuests }) {
   const { data: session, status } = useSession();
-  const [guests, setGuests] = useState([]);
+  const [guests, setGuests] = useState(initialGuests || []);
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
   const [fetchingGuests, setFetchingGuests] = useState(true);
+  const [fetchError, setFetchError] = useState(null);
   const [editingId, setEditingId] = useState(null);
   const [editedName, setEditedName] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
@@ -24,13 +26,30 @@ export default function GuestlistPage() {
 
   useEffect(() => {
     if (!session) return;
-    setFetchingGuests(true);
-    fetch("/api/guestlist-test")
-      .then((res) => res.json())
-      .then((data) => setGuests(Array.isArray(data) ? data : []))
-      .catch(() => toast.error("Failed to fetch guest list"))
-      .finally(() => setFetchingGuests(false));
+    const fetchGuests = async () => {
+      setFetchingGuests(true);
+      setFetchError(null);
+      try {
+        const res = await fetch("/api/guestlist-test", { credentials: 'include' });
+        if (!res.ok) throw new Error('Failed to fetch guest list');
+        const data = await res.json();
+        console.log('API Response:', data); // Debug log
+        setGuests(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.error('Fetch error:', error); // Debug log
+        setFetchError(error.message);
+        toast.error("Failed to fetch guest list");
+      } finally {
+        setFetchingGuests(false);
+      }
+    };
+    fetchGuests();
   }, [session]);
+
+  useEffect(() => {
+    console.log('Session:', session, 'Status:', status); // Debug log
+    console.log('Guests:', guests); // Debug log
+  }, [session, status, guests]);
 
   const addGuest = async (e) => {
     e.preventDefault();
@@ -42,6 +61,7 @@ export default function GuestlistPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: name.trim().slice(0, 50) }),
+        credentials: 'include',
       });
       const data = await res.json();
       if (res.ok) {
@@ -65,6 +85,7 @@ export default function GuestlistPage() {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id }),
+        credentials: 'include',
       });
 
       if (res.ok) {
@@ -89,6 +110,7 @@ export default function GuestlistPage() {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ guestId: id, updatedName: editedName.trim().slice(0, 50) }),
+        credentials: 'include',
       });
 
       if (res.ok) {
@@ -119,57 +141,150 @@ export default function GuestlistPage() {
     currentPage * guestsPerPage
   );
 
-  // --- Conditional Rendering ---
+  useEffect(() => {
+    console.log('Filtered Guests:', filteredGuests); // Debug log
+    console.log('Displayed Guests:', displayedGuests); // Debug log
+  }, [filteredGuests, displayedGuests]);
 
-  if (status === "loading") {
+  // Scroll to Top Button and Icons
+  function ChevronLeftIcon(props) {
     return (
-       // Optionally add a Head component here too for loading state
-       <>
-        <Head>
-            <title>Loading Guest List...</title>
-        </Head>
-        <div className="p-8 text-center">Loading session...</div>
-       </>
+      <svg viewBox="0 0 16 16" fill="none" aria-hidden="true" {...props}>
+        <path
+          d="M10.25 4.75 6.75 8l3.5 3.25"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
     );
   }
 
-  if (!session) {
+  function ChevronRightIcon(props) {
     return (
-      // Use a Fragment <>...</> to return multiple elements
+      <svg viewBox="0 0 16 16" fill="none" aria-hidden="true" {...props}>
+        <path
+          d="M5.75 4.75 9.25 8l-3.5 3.25"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    );
+  }
+
+  function ArrowUpIcon(props) {
+    return (
+      <svg viewBox="0 0 16 16" fill="none" aria-hidden="true" {...props}>
+        <path
+          d="M8 12.25V3.75M3.75 8l4.25-4.25L12.25 8"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    );
+  }
+
+  function ScrollToTopButton() {
+    const [isVisible, setIsVisible] = useState(false);
+
+    const toggleVisibility = () => {
+      if (window.scrollY > 300) {
+        setIsVisible(true);
+      } else {
+        setIsVisible(false);
+      }
+    };
+
+    const scrollToTop = () => {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth',
+      });
+    };
+
+    useEffect(() => {
+      window.addEventListener('scroll', toggleVisibility);
+      return () => window.removeEventListener('scroll', toggleVisibility);
+    }, []);
+
+    return (
+      <button
+        onClick={scrollToTop}
+        className={clsx(
+          'fixed bottom-6 right-6 p-3 rounded-full bg-teal-500 text-white shadow-lg hover:bg-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 dark:focus:ring-offset-zinc-800 transition-opacity duration-300',
+          isVisible ? 'opacity-100' : 'opacity-0 pointer-events-none',
+        )}
+        aria-label="Scroll to top"
+      >
+        <ArrowUpIcon className="h-5 w-5" />
+      </button>
+    );
+  }
+
+  // Conditional Rendering
+  if (status === "loading" && !session) {
+    return (
       <>
         <Head>
-          <title>Guestlist - Saurabh Kirve</title> {/* Title for the sign-in page */}
+          <title>Loading Guest List...</title>
         </Head>
-        <div className="flex flex-col justify-center items-center h-screen gap-6 px-6">
-          <Toaster />
-          <h1 className="text-3xl sm:text-5xl font-bold text-center text-zinc-900 dark:text-white">
-            Be my guest
-            <br /> {/* Added line break for potentially better formatting */}
-            and add your name to the list!
-          </h1>
-          <button
-            onClick={() => signIn()}
-            className="px-6 py-3 bg-zinc-800 text-white dark:bg-zinc-700 rounded-xl dark:hover:bg-teal-500 hover:bg-teal-500 hover:scale-105 transition transform"
+        <div className="p-8 text-center">
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
+            className="inline-block"
           >
-            Sign in with GitHub or Google
-          </button>
+            <FaSpinner className="text-teal-500 text-3xl" />
+          </motion.div>
+          <p className="mt-2 text-zinc-600 dark:text-zinc-400">Loading session...</p>
         </div>
       </>
     );
   }
 
-  // --- Main Logged-in View ---
+  if (!session) {
+    return (
+      <>
+        <Head>
+          <title>Guestlist - Saurabh Kirve</title>
+          <meta name="description" content="Sign in to add your name to the guest list." />
+        </Head>
+        <div className="flex flex-col justify-center items-center h-screen gap-6 px-6">
+          <Toaster />
+          <motion.h1
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5 }}
+            className="text-3xl sm:text-5xl font-bold text-center text-zinc-900 dark:text-white"
+          >
+            Be my guest
+            <br />
+            and add your name to the list!
+          </motion.h1>
+          <motion.button
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            onClick={() => signIn()}
+            className="px-6 py-3 bg-zinc-800 text-white dark:bg-zinc-700 rounded-xl dark:hover:bg-teal-500 hover:bg-teal-500 hover:scale-105 transition transform focus:outline-none focus:ring-2 focus:ring-teal-500"
+          >
+            Sign in with GitHub or Google
+          </motion.button>
+        </div>
+      </>
+    );
+  }
+
+  // Main Logged-in View
   return (
-    // 2. Wrap the main return in a Fragment <>...</>
     <>
-      {/* 3. Add the Head component and the title tag inside it */}
       <Head>
-        <title>Guest List - Manage Entries</title> {/* <-- YOUR BROWSER TAB TITLE */}
-        {/* You can add other head elements here too, like meta tags */}
-        {/* <meta name="description" content="Manage the guest list entries" /> */}
+        <title>Guest List - Manage Entries</title>
+        <meta name="description" content="Manage the guest list entries" />
       </Head>
 
-      {/* --- Existing component structure starts here --- */}
       <div className="max-w-2xl mx-auto p-4 sm:p-6">
         <Toaster />
 
@@ -177,14 +292,14 @@ export default function GuestlistPage() {
         <div className="flex items-center gap-4 mb-6">
           <img
             src={session.user.image || '/default-avatar.png'}
-            alt="Avatar"
+            alt={`${session.user.name}'s avatar`}
             className="w-14 h-14 rounded-full border dark:border-zinc-700"
           />
           <div>
             <h2 className="text-2xl font-semibold dark:text-white">{session.user.name}</h2>
             <button
               onClick={() => signOut()}
-              className="text-sm text-teal-500 hover:underline"
+              className="text-sm text-teal-500 hover:underline focus:outline-none focus:ring-2 focus:ring-teal-500 rounded"
             >
               Sign Out
             </button>
@@ -197,13 +312,13 @@ export default function GuestlistPage() {
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Enter your name"
-            className="flex-1 px-4 py-2 border rounded-xl dark:bg-zinc-800 dark:text-white"
-            maxLength={50} // Good practice to match backend limit
+            className="flex-1 px-4 py-2 border rounded-xl bg-white shadow-md shadow-zinc-800/5 placeholder:text-zinc-400 focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/10 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:placeholder:text-zinc-500 dark:focus:border-teal-400 dark:focus:ring-teal-400/10"
+            maxLength={50}
           />
           <button
             type="submit"
             disabled={loading}
-            className="flex items-center justify-center px-4 py-2 bg-teal-500 hover:bg-teal-600 text-white rounded-xl transition transform hover:scale-105"
+            className="flex items-center justify-center px-4 py-2 bg-teal-500 hover:bg-teal-600 text-white rounded-xl transition transform hover:scale-105 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-teal-500"
           >
             {loading ? <FaSpinner className="animate-spin" /> : "Add"}
           </button>
@@ -214,30 +329,72 @@ export default function GuestlistPage() {
           value={searchTerm}
           onChange={(e) => {
             setSearchTerm(e.target.value);
-            setCurrentPage(1); // Reset to first page on search
+            setCurrentPage(1);
           }}
           placeholder="Search guests..."
-          className="mb-6 w-full px-4 py-2 border rounded-xl dark:bg-zinc-800 dark:text-white"
+          className="mb-6 w-full px-4 py-2 border rounded-xl bg-white shadow-md shadow-zinc-800/5 placeholder:text-zinc-400 focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/10 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:placeholder:text-zinc-500 dark:focus:border-teal-400 dark:focus:ring-teal-400/10"
         />
+
+        {/* Guest Count */}
+        <p className="mb-4 text-sm text-zinc-600 dark:text-zinc-400">
+          Total Guests: {filteredGuests.length}
+        </p>
 
         {/* Guest List */}
         <ul className="space-y-4">
           <AnimatePresence>
-            {fetchingGuests ? (
-              <motion.p
+            {fetchError ? (
+              <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="text-center text-gray-500 dark:text-gray-400"
+                className="text-center text-zinc-600 dark:text-zinc-400"
               >
-                Fetching guest list...
-              </motion.p>
+                <p className="text-lg font-semibold">Failed to Load Guest List</p>
+                <p className="mt-2">{fetchError}</p>
+                <button
+                  onClick={() => {
+                    setFetchingGuests(true);
+                    setFetchError(null);
+                    fetch("/api/guestlist-test", { credentials: 'include' })
+                      .then((res) => res.json())
+                      .then((data) => setGuests(Array.isArray(data) ? data : []))
+                      .catch((error) => {
+                        setFetchError(error.message);
+                        toast.error("Failed to fetch guest list");
+                      })
+                      .finally(() => setFetchingGuests(false));
+                  }}
+                  className="mt-4 px-4 py-2 rounded-xl bg-teal-500 text-white hover:bg-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                >
+                  Retry
+                </button>
+              </motion.div>
+            ) : fetchingGuests ? (
+              Array.from({ length: guestsPerPage }).map((_, idx) => (
+                <motion.li
+                  key={idx}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="p-2 rounded-xl border dark:border-zinc-700 shadow-sm flex justify-between items-center dark:bg-zinc-800 animate-pulse"
+                >
+                  <div className="flex-1">
+                    <div className="h-5 w-3/4 bg-zinc-200 dark:bg-zinc-700 rounded mb-2" />
+                    <div className="h-4 w-1/2 bg-zinc-200 dark:bg-zinc-700 rounded" />
+                  </div>
+                  <div className="flex gap-2">
+                    <div className="h-5 w-5 bg-zinc-200 dark:bg-zinc-700 rounded" />
+                    <div className="h-5 w-5 bg-zinc-200 dark:bg-zinc-700 rounded" />
+                  </div>
+                </motion.li>
+              ))
             ) : displayedGuests.length === 0 ? (
               <motion.p
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="text-center text-gray-500 dark:text-gray-400"
+                className="text-center text-zinc-600 dark:text-zinc-400"
               >
                 {searchTerm ? `No guests found matching "${searchTerm}".` : "No guests yet. Add the first! 🚀"}
               </motion.p>
@@ -245,35 +402,35 @@ export default function GuestlistPage() {
               displayedGuests.map((g) => (
                 <motion.li
                   key={g.id}
-                  layout // Add layout prop for smoother animations on add/delete/reorder
+                  layout
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ duration: 0.2 }}
-                  className="p-2 rounded-xl border dark:border-zinc-700 shadow-sm flex justify-between items-center dark:bg-zinc-800"
+                  className="p-2 rounded-xl border dark:border-zinc-700 shadow-sm flex justify-between items-center dark:bg-zinc-800 group"
                 >
-                  <div>
+                  <div className="flex-1">
                     {editingId === g.id ? (
-                      <div className="flex flex-col sm:flex-row gap-2 items-start sm:items-center"> {/* Adjusted alignment */}
+                      <div className="flex flex-col sm:flex-row gap-2 items-start sm:items-center">
                         <input
                           value={editedName}
                           onChange={(e) => setEditedName(e.target.value)}
-                          className="px-2 py-1 border rounded dark:bg-zinc-700 dark:text-white w-full sm:w-auto" // Ensure input takes space
-                          maxLength={50} // Match backend limit
-                          autoFocus // Focus input on edit
+                          className="px-2 py-1 border rounded bg-white shadow-md shadow-zinc-800/5 focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/10 dark:border-zinc-700 dark:bg-zinc-700 dark:text-zinc-200 dark:focus:border-teal-400 dark:focus:ring-teal-400/10 w-full sm:w-auto"
+                          maxLength={50}
+                          autoFocus
                         />
-                        <div className="flex gap-2 mt-2 sm:mt-0 flex-shrink-0"> {/* Prevent buttons wrapping */}
+                        <div className="flex gap-2 mt-2 sm:mt-0 flex-shrink-0">
                           <button
                             onClick={() => updateGuest(g.id)}
                             disabled={loading}
-                            className="text-green-500 hover:underline text-sm disabled:opacity-50"
+                            className="text-green-500 hover:underline text-sm disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-green-500 rounded"
                           >
                             {loading ? <FaSpinner className="animate-spin" /> : "Save"}
                           </button>
                           <button
                             onClick={() => setEditingId(null)}
                             disabled={loading}
-                            className="text-gray-400 hover:underline text-sm"
+                            className="text-gray-400 hover:underline text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 rounded"
                           >
                             Cancel
                           </button>
@@ -281,9 +438,8 @@ export default function GuestlistPage() {
                       </div>
                     ) : (
                       <>
-                        <h3 className="font-semibold dark:text-white break-words">{g.name}</h3> {/* Allow long names to wrap */}
-                        <p className="text-xs text-gray-500 dark:text-gray-400">
-                          {/* Safely access addedBy and format date */}
+                        <h3 className="font-semibold dark:text-white break-words">{g.name}</h3>
+                        <p className="text-xs text-zinc-600 dark:text-zinc-400">
                           Added by {g.addedBy || 'Unknown'} •{' '}
                           {g.createdAt ? new Date(g.createdAt).toLocaleDateString() : 'Date unknown'}
                         </p>
@@ -293,22 +449,30 @@ export default function GuestlistPage() {
 
                   {/* Admin Actions */}
                   {isAdmin && editingId !== g.id && (
-                    <div className="flex gap-2 ml-2 flex-shrink-0"> {/* Prevent buttons wrapping */}
+                    <div
+                      className={clsx(
+                        'flex gap-2 ml-2 flex-shrink-0',
+                        'sm:opacity-0 sm:group-hover:opacity-100 sm:transition-opacity sm:duration-200',
+                        'opacity-100'
+                      )}
+                    >
                       <button
                         onClick={() => {
                           setEditingId(g.id);
                           setEditedName(g.name);
                         }}
-                        className="text-blue-400 hover:underline text-sm"
+                        className="text-blue-400 hover:text-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
+                        aria-label={`Edit guest: ${g.name}`}
                       >
-                        Edit
+                        ✏️
                       </button>
                       <button
                         onClick={() => deleteGuest(g.id)}
-                        disabled={loading} // Disable delete during any loading state
-                        className="text-red-400 hover:underline text-sm disabled:opacity-50"
+                        disabled={loading}
+                        className="text-red-400 hover:text-red-500 focus:outline-none focus:ring-2 focus:ring-red-500 rounded disabled:opacity-50"
+                        aria-label={`Delete guest: ${g.name}`}
                       >
-                        Delete
+                        🗑️
                       </button>
                     </div>
                   )}
@@ -320,42 +484,74 @@ export default function GuestlistPage() {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex justify-center items-center mt-6 gap-2 overflow-x-auto pb-2"> {/* Added pb-2 for scrollbar space */}
-            {/* Optional: Previous Button */}
+          <div className="flex justify-center items-center mt-6 gap-2 overflow-x-auto pb-2">
             <button
               onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
               disabled={currentPage === 1}
-              className="px-3 py-1 rounded-full bg-gray-200 text-black dark:bg-zinc-700 dark:text-white disabled:opacity-50"
+              className="flex items-center px-3 py-2 rounded-lg text-sm bg-zinc-200 dark:bg-zinc-700 hover:bg-teal-100 dark:hover:bg-teal-700 text-black dark:text-white disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-teal-500"
+              aria-label="Previous page"
             >
-              &lt; {/* Previous */}
+              <ChevronLeftIcon className="h-4 w-4 mr-1 stroke-current" />
+              Prev
             </button>
 
-            {/* Page Numbers */}
             {Array.from({ length: totalPages }, (_, idx) => (
               <button
                 key={idx + 1}
                 onClick={() => setCurrentPage(idx + 1)}
-                className={`px-4 py-2 rounded-full text-sm ${ // Made text slightly smaller
+                className={clsx(
+                  'px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-teal-500',
                   currentPage === idx + 1
-                    ? "bg-teal-500 text-white font-semibold" // Highlight current page
-                    : "bg-gray-200 text-black dark:bg-zinc-700 dark:text-white hover:bg-gray-300 dark:hover:bg-zinc-600"
-                }`}
+                    ? 'bg-teal-500 text-white shadow-md'
+                    : 'bg-zinc-200 dark:bg-zinc-700 hover:bg-teal-100 dark:hover:bg-teal-700 text-black dark:text-white',
+                )}
+                aria-label={`Go to page ${idx + 1}`}
+                aria-current={currentPage === idx + 1 ? 'page' : undefined}
               >
                 {idx + 1}
               </button>
             ))}
 
-            {/* Optional: Next Button */}
             <button
-               onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-               disabled={currentPage === totalPages}
-               className="px-3 py-1 rounded-full bg-gray-200 text-black dark:bg-zinc-700 dark:text-white disabled:opacity-50"
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className="flex items-center px-3 py-2 rounded-lg text-sm bg-zinc-200 dark:bg-zinc-700 hover:bg-teal-100 dark:hover:bg-teal-700 text-black dark:text-white disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-teal-500"
+              aria-label="Next page"
             >
-               &gt; {/* Next */}
-             </button>
+              Next
+              <ChevronRightIcon className="h-4 w-4 ml-1 stroke-current" />
+            </button>
           </div>
         )}
       </div>
-    </> // 4. Close the Fragment
+
+      <ScrollToTopButton />
+    </>
   );
+}
+
+export async function getServerSideProps(context) {
+  const session = await getServerSession(context.req, context.res, authOptions);
+  let initialGuests = [];
+  if (session) {
+    try {
+      const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
+      const host = context.req.headers.host || 'localhost:3000';
+      const baseUrl = `${protocol}://${host}`;
+      const res = await fetch(`${baseUrl}/api/guestlist-test`, {
+        headers: {
+          cookie: context.req.headers.cookie || '',
+        },
+      });
+      if (res.ok) {
+        initialGuests = await res.json();
+        if (!Array.isArray(initialGuests)) initialGuests = [];
+      }
+    } catch (error) {
+      console.error('Error fetching initial guests:', error);
+    }
+  }
+  return {
+    props: { initialGuests },
+  };
 }

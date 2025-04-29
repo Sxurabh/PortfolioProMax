@@ -443,7 +443,8 @@ export async function getServerSideProps(context) {
       },
     };
   } catch (error) {
-    console.error('Error in getServerSideProps:', error);
+    console.error('Error fetching articles in getServerSideProps:', error.message);
+    console.error('Stack trace:', error.stack);
     return {
       props: {
         articles: [],

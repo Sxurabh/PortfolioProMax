@@ -431,9 +431,9 @@ export async function getServerSideProps(context) {
 
     const totalPages = Math.ceil(totalArticles / PAGE_SIZE);
 
-    if (process.env.NODE_ENV === 'production') {
-      await generateRssFeed();
-    }
+    // if (process.env.NODE_ENV === 'production') {
+    //   await generateRssFeed();
+    // }
 
     return {
       props: {

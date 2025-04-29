@@ -532,26 +532,36 @@ export default function GuestlistPage({ initialGuests }) {
 
 export async function getServerSideProps(context) {
   const session = await getServerSession(context.req, context.res, authOptions);
-  let initialGuests = [];
-  if (session) {
-    try {
-      const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
-      const host = context.req.headers.host || 'localhost:3000';
-      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "";
-      const res = await fetch(`${baseUrl}/api/guestlist-test`, {
-        headers: {
-          cookie: context.req.headers.cookie || '',
-        },
-      });
-      if (res.ok) {
-        initialGuests = await res.json();
-        if (!Array.isArray(initialGuests)) initialGuests = [];
-      }
-    } catch (error) {
-      console.error('Error fetching initial guests:', error);
-    }
+
+  if (!session) {
+    return {
+      props: {
+        initialGuests: [],
+      },
+    };
   }
-  return {
-    props: { initialGuests },
-  };
+
+  try {
+    const res = await fetch(`${process.env.NEXTAUTH_URL}/api/guestlist-test`, {
+      headers: {
+        cookie: context.req.headers.cookie || '',
+      },
+    });
+
+    const guests = await res.json();
+
+    return {
+      props: {
+        initialGuests: Array.isArray(guests) ? guests : [],
+      },
+    };
+  } catch (error) {
+    console.error("SSR Fetch Error:", error);
+    return {
+      props: {
+        initialGuests: [],
+      },
+    };
+  }
 }
+

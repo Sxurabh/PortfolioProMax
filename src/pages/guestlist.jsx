@@ -537,7 +537,7 @@ export async function getServerSideProps(context) {
     try {
       const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
       const host = context.req.headers.host || 'localhost:3000';
-      const baseUrl = `${protocol}://${host}`;
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "";
       const res = await fetch(`${baseUrl}/api/guestlist-test`, {
         headers: {
           cookie: context.req.headers.cookie || '',

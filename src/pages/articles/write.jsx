@@ -35,12 +35,12 @@ export default function WriteArticle() {
   return (
     <>
       <Head>
-        <title>Write New Article</title>
+        <title>Write Article - Saurabh Kirve</title>
       </Head>
       <SimpleLayout title="Write a New Article" intro="Fill in the details below to create a new article.">
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label htmlFor="title" className="block text-sm font-medium text-gray-700">Title</label>
+            <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-white">Title</label>
             <input
               type="text"
               name="title"
@@ -52,7 +52,7 @@ export default function WriteArticle() {
             />
           </div>
           <div>
-            <label htmlFor="slug" className="block text-sm font-medium text-gray-700">Slug</label>
+            <label htmlFor="slug" className="block text-sm font-medium text-gray-700 dark:text-white">Slug</label>
             <input
               type="text"
               name="slug"
@@ -64,7 +64,7 @@ export default function WriteArticle() {
             />
           </div>
           <div>
-            <label htmlFor="description" className="block text-sm font-medium text-gray-700">Description</label>
+            <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-white">Description</label>
             <textarea
               name="description"
               id="description"
@@ -75,7 +75,7 @@ export default function WriteArticle() {
             />
           </div>
           <div>
-            <label htmlFor="content" className="block text-sm font-medium text-gray-700">Content</label>
+            <label htmlFor="content" className="block text-sm font-medium text-gray-700 dark:text-white">Content</label>
             <textarea
               name="content"
               id="content"

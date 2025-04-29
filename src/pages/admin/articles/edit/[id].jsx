@@ -30,6 +30,7 @@ export default function EditArticle({ article }) {
   }
 
   return (
+    
     <SimpleLayout
       title="Edit Article"
       intro="Update your article below."
@@ -42,18 +43,18 @@ export default function EditArticle({ article }) {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             required
-            className="rounded border border-zinc-300 dark:border-zinc-700 p-2 dark:bg-zinc-800"
+            className="rounded border border-zinc-300 dark:border-zinc-700 p-2 dark:bg-zinc-800 dark:text-white"
           />
         </div>
 
         <div className="flex flex-col">
-          <label className="mb-2 text-sm font-semibold text-zinc-700 dark:text-zinc-200">Description</label>
+          <label className="mb-2 text-sm font-semibold text-zinc-700 dark:text-zinc-200 ">Description</label>
           <input
             type="text"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             required
-            className="rounded border border-zinc-300 dark:border-zinc-700 p-2 dark:bg-zinc-800"
+            className="rounded border border-zinc-300 dark:border-zinc-700 p-2 dark:bg-zinc-800 dark:text-white"
           />
         </div>
 
@@ -63,7 +64,7 @@ export default function EditArticle({ article }) {
             value={content}
             onChange={(e) => setContent(e.target.value)}
             rows={8}
-            className="rounded border border-zinc-300 dark:border-zinc-700 p-2 dark:bg-zinc-800"
+            className="rounded border border-zinc-300 dark:border-zinc-700 p-2 dark:bg-zinc-800 dark:text-white"
           />
         </div>
 

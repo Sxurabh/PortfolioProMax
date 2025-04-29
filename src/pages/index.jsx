@@ -1,8 +1,7 @@
-import Image from 'next/image'; // Updated from next/future/image
+import Image from 'next/image';
 import Head from 'next/head';
 import Link from 'next/link';
 import clsx from 'clsx';
-
 import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
 import { Container } from '@/components/Container';
@@ -22,8 +21,13 @@ import logoFacebook from '@/images/logos/facebook.svg';
 import logoPlanetaria from '@/images/logos/planetaria.svg';
 import logoStarbucks from '@/images/logos/starbucks.svg';
 import { generateRssFeed } from '@/lib/generateRssFeed';
-import { getAllArticles } from '@/lib/getAllArticles';
 import { formatDate } from '@/lib/formatDate';
+import prisma from '@/lib/prisma';
+import { useSession } from 'next-auth/react';
+import { useState } from 'react';
+
+// Define page size for pagination
+const PAGE_SIZE = 3;
 
 function MailIcon(props) {
   return (
@@ -137,6 +141,41 @@ function Newsletter() {
 }
 
 function Resume() {
+  const { data: session } = useSession();
+  const isAdmin = session?.user?.email === process.env.NEXT_PUBLIC_ADMIN_EMAIL;
+  const [uploadStatus, setUploadStatus] = useState(null);
+
+  const handleUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    if (!file.type.includes('pdf')) {
+      setUploadStatus('Please upload a PDF file.');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('cv', file);
+
+    setUploadStatus('Uploading...');
+
+    try {
+      const response = await fetch('/api/upload-cv', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const result = await response.json();
+      if (response.ok) {
+        setUploadStatus('CV uploaded successfully!');
+      } else {
+        setUploadStatus(result.error || 'Failed to upload CV.');
+      }
+    } catch (error) {
+      setUploadStatus('Error uploading CV.');
+    }
+  };
+
   let resume = [
     {
       company: 'SG Analytics',
@@ -197,10 +236,34 @@ function Resume() {
           </li>
         ))}
       </ol>
-      <Button href="#" variant="secondary" className="group mt-6 w-full hover:bg-teal-400 hover:text-white dark:hover:bg-teal-500 dark:hover:text-white">
-        Download CV
-        <ArrowDownIcon className="h-4 w-4 stroke-zinc-400 transition group-active:stroke-zinc-600 dark:group-hover:stroke-zinc-50 dark:group-active:stroke-zinc-50" />
-      </Button>
+      <div className="mt-6 flex flex-col sm:flex-row gap-4">
+        <Button
+          href="/cv.pdf"
+          variant="secondary"
+          className="group w-full sm:w-auto hover:bg-teal-400 hover:text-white dark:hover:bg-teal-500 dark:hover:text-white"
+        >
+          Download CV
+          <ArrowDownIcon className="h-4 w-4 stroke-zinc-400 transition group-active:stroke-zinc-600 dark:group-hover:stroke-zinc-50 dark:group-active:stroke-zinc-50" />
+        </Button>
+        {isAdmin && (
+          <label className="w-full sm:w-auto">
+            <input
+              type="file"
+              accept="application/pdf"
+              onChange={handleUpload}
+              className="hidden"
+            />
+            <span
+              className="inline-flex items-center justify-center rounded-md border border-transparent bg-teal-500 px-4 py-2 text-sm font-medium text-white hover:bg-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 dark:focus:ring-offset-zinc-800 cursor-pointer"
+            >
+              Upload CV
+            </span>
+          </label>
+        )}
+      </div>
+      {uploadStatus && (
+        <p className="mt-4 text-sm text-zinc-600 dark:text-zinc-400">{uploadStatus}</p>
+      )}
     </div>
   );
 }
@@ -210,29 +273,42 @@ function Photos() {
 
   return (
     <div className="mt-16 sm:mt-20">
-      <div className="-my-4 flex justify-center gap-5 overflow-hidden py-4 sm:gap-8">
-        {[image1, image2, image3, image4, image5].map((image, imageIndex) => (
-          <div
-            key={image.src}
-            className={clsx(
-              ' w-44 flex-none overflow-hidden rounded-xl bg-zinc-100 dark:bg-zinc-800 sm:w-72 sm:rounded-2xl',
-              rotations[imageIndex % rotations.length],
-            )}
-          >
-            <Image
-              src={image}
-              alt=""
-              sizes="(min-width: 640px) 18rem, 11rem"
-              className="absolute inset-0 h-full w-full object-cover"
-            />
-          </div>
-        ))}
+      <div className="relative">
+        <div
+          className={clsx(
+            'flex sm:justify-center gap-5 py-4 sm:gap-8',
+            'overflow-x-auto sm:overflow-hidden',
+            'snap-x snap-mandatory scroll-smooth',
+            'scrollbar-thin scrollbar-thumb-teal-500 scrollbar-track-zinc-200 dark:scrollbar-track-zinc-700',
+          )}
+        >
+          {[image1, image2, image3, image4, image5].map((image, imageIndex) => (
+            <div
+              key={image.src}
+              className={clsx(
+                'w-44 flex-none snap-center overflow-hidden rounded-xl bg-zinc-100 dark:bg-zinc-800 sm:w-72 sm:rounded-2xl',
+                rotations[imageIndex % rotations.length],
+              )}
+            >
+              <Image
+  src={image}
+  alt={`Photo ${imageIndex + 1}`}
+  sizes="(min-width: 640px) 18rem, 11rem"
+  className="absolute inset-0 h-full w-full object-cover"
+  priority={imageIndex < 2} // Prioritize first two images
+/>
+            </div>
+          ))}
+        </div>
+        {/* Optional: Add a subtle shadow to indicate scrollability on mobile */}
+        <div className="pointer-events-none absolute inset-y-0 left-0 w-12 bg-gradient-to-r from-white to-transparent dark:from-zinc-900 sm:hidden" />
+        <div className="pointer-events-none absolute inset-y-0 right-0 w-12 bg-gradient-to-l from-white to-transparent dark:from-zinc-900 sm:hidden" />
       </div>
     </div>
   );
 }
 
-export default function Home({ articles }) {
+export default function Home({ articles, totalPages, currentPage }) {
   return (
     <>
       <Head>
@@ -276,7 +352,7 @@ export default function Home({ articles }) {
               icon={GitHubIcon}
             />
             <SocialLink
-              href="https://www.linkedin.com/in/saurabhkirve" // Fixed URL
+              href="https://www.linkedin.com/in/saurabhkirve"
               aria-label="Follow on LinkedIn"
               icon={LinkedInIcon}
             />
@@ -290,6 +366,37 @@ export default function Home({ articles }) {
             {articles.map((article) => (
               <Article key={article.slug} article={article} />
             ))}
+            <div className="flex justify-center mt-12 space-x-2 items-center">
+              {currentPage > 1 && (
+                <Link
+                  href={`/?page=${currentPage - 1}`}
+                  className="px-3 py-2 rounded-lg text-sm bg-zinc-200 dark:bg-zinc-700 hover:bg-teal-100 dark:hover:bg-teal-700 transition text-black dark:text-white"
+                >
+                  ← Prev
+                </Link>
+              )}
+              {Array.from({ length: totalPages }, (_, idx) => (
+                <Link
+                  key={idx}
+                  href={`/?page=${idx + 1}`}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium ${
+                    currentPage === idx + 1
+                      ? 'bg-teal-500 text-white'
+                      : 'bg-zinc-200 dark:bg-zinc-700 hover:bg-teal-100 dark:hover:bg-teal-700 text-black dark:text-white'
+                  }`}
+                >
+                  {idx + 1}
+                </Link>
+              ))}
+              {currentPage < totalPages && (
+                <Link
+                  href={`/?page=${currentPage + 1}`}
+                  className="px-3 py-2 rounded-lg text-sm bg-zinc-200 dark:bg-zinc-700 hover:bg-teal-100 dark:hover:bg-teal-700 transition text-black dark:text-white"
+                >
+                  Next →
+                </Link>
+              )}
+            </div>
           </div>
           <div className="space-y-10 lg:pl-16 xl:pl-24">
             <Newsletter />
@@ -301,21 +408,48 @@ export default function Home({ articles }) {
   );
 }
 
-export async function getStaticProps() {
-  if (process.env.NODE_ENV === 'production') {
-    // await generateRssFeed();
-  }
+export async function getServerSideProps(context) {
+  const page = parseInt(context.query.page) || 1;
+  const skip = (page - 1) * PAGE_SIZE;
 
-  let articles = [];
   try {
-    articles = await getAllArticles();
-  } catch (error) {
-    console.error('Error fetching articles in getStaticProps:', error);
-  }
+    const [dbArticlesRaw, totalArticles] = await Promise.all([
+      prisma.article.findMany({
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: PAGE_SIZE,
+      }),
+      prisma.article.count(),
+    ]);
 
-  return {
-    props: {
-      articles: articles.slice(0, 4), // Limit to 4 articles
-    },
-  };
+    const articles = dbArticlesRaw.map((article) => ({
+      ...article,
+      date: article.createdAt.toISOString(),
+      createdAt: article.createdAt.toISOString(),
+      slug: article.slug || article.id,
+    }));
+
+    const totalPages = Math.ceil(totalArticles / PAGE_SIZE);
+
+    if (process.env.NODE_ENV === 'production') {
+      await generateRssFeed();
+    }
+
+    return {
+      props: {
+        articles,
+        totalPages,
+        currentPage: page,
+      },
+    };
+  } catch (error) {
+    console.error('Error in getServerSideProps:', error);
+    return {
+      props: {
+        articles: [],
+        totalPages: 1,
+        currentPage: 1,
+      },
+    };
+  }
 }

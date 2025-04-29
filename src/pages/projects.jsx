@@ -97,7 +97,7 @@ function ScrollToTopButton() {
       )}
       aria-label="Scroll to top"
     >
-      <ArrowUpIcon className="h-5 w-5" />
+      <ArrowUpIcon className="h-5 w-5 stroke-current" />
     </button>
   );
 }

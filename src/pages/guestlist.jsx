@@ -8,24 +8,31 @@ import { FaSpinner } from "react-icons/fa";
 import Head from 'next/head';
 import clsx from 'clsx';
 
-export default function GuestlistPage({ initialGuests }) {
+export default function GuestlistPage({ initialGuests, isAuthenticated }) {
   const { data: session, status } = useSession();
   const [guests, setGuests] = useState(initialGuests || []);
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
-  const [fetchingGuests, setFetchingGuests] = useState(true);
+  const [fetchingGuests, setFetchingGuests] = useState(false);
   const [fetchError, setFetchError] = useState(null);
   const [editingId, setEditingId] = useState(null);
   const [editedName, setEditedName] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [isHydrated, setIsHydrated] = useState(false);
   const guestsPerPage = 5;
 
   const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL;
   const isAdmin = session?.user?.email === adminEmail;
 
+  // Ensure hydration is complete before rendering client-side
   useEffect(() => {
-    if (!session) return;
+    setIsHydrated(true);
+  }, []);
+
+  // Fetch guests client-side only if necessary (e.g., after session changes or updates)
+  useEffect(() => {
+    if (!session || !isHydrated) return;
     const fetchGuests = async () => {
       setFetchingGuests(true);
       setFetchError(null);
@@ -33,10 +40,10 @@ export default function GuestlistPage({ initialGuests }) {
         const res = await fetch("/api/guestlist-test", { credentials: 'include' });
         if (!res.ok) throw new Error('Failed to fetch guest list');
         const data = await res.json();
-        console.log('API Response:', data); // Debug log
+        console.log('API Response:', data);
         setGuests(Array.isArray(data) ? data : []);
       } catch (error) {
-        console.error('Fetch error:', error); // Debug log
+        console.error('Fetch error:', error);
         setFetchError(error.message);
         toast.error("Failed to fetch guest list");
       } finally {
@@ -44,12 +51,14 @@ export default function GuestlistPage({ initialGuests }) {
       }
     };
     fetchGuests();
-  }, [session]);
+  }, [session, isHydrated]);
 
+  // Debug logs
   useEffect(() => {
-    console.log('Session:', session, 'Status:', status); // Debug log
-    console.log('Guests:', guests); // Debug log
-  }, [session, status, guests]);
+    console.log('Session:', session, 'Status:', status);
+    console.log('Guests:', guests);
+    console.log('Is Hydrated:', isHydrated);
+  }, [session, status, guests, isHydrated]);
 
   const addGuest = async (e) => {
     e.preventDefault();
@@ -142,8 +151,8 @@ export default function GuestlistPage({ initialGuests }) {
   );
 
   useEffect(() => {
-    console.log('Filtered Guests:', filteredGuests); // Debug log
-    console.log('Displayed Guests:', displayedGuests); // Debug log
+    console.log('Filtered Guests:', filteredGuests);
+    console.log('Displayed Guests:', displayedGuests);
   }, [filteredGuests, displayedGuests]);
 
   // Scroll to Top Button and Icons
@@ -224,7 +233,8 @@ export default function GuestlistPage({ initialGuests }) {
   }
 
   // Conditional Rendering
-  if (status === "loading" && !session) {
+  // Prevent rendering until hydration is complete
+  if (!isHydrated) {
     return (
       <>
         <Head>
@@ -238,13 +248,14 @@ export default function GuestlistPage({ initialGuests }) {
           >
             <FaSpinner className="text-teal-500 text-3xl" />
           </motion.div>
-          <p className="mt-2 text-zinc-600 dark:text-zinc-400">Loading session...</p>
+          <p className="mt-2 text-zinc-600 dark:text-zinc-400">Loading...</p>
         </div>
       </>
     );
   }
 
-  if (!session) {
+  // If not authenticated on the server and client-side session is still loading or unauthenticated
+  if (!isAuthenticated && status === "unauthenticated") {
     return (
       <>
         <Head>
@@ -277,7 +288,148 @@ export default function GuestlistPage({ initialGuests }) {
     );
   }
 
-  // Main Logged-in View
+  // If session is still loading but server confirmed authentication, use initialGuests
+  if (status === "loading" && isAuthenticated) {
+    return (
+      <>
+        <Head>
+          <title>Guest List - Manage Entries</title>
+          <meta name="description" content="Manage the guest list entries" />
+        </Head>
+
+        <div className="max-w-2xl mx-auto p-4 sm:p-6">
+          <Toaster />
+
+          {/* Placeholder Avatar Section (since session is loading) */}
+          <div className="flex items-center gap-4 mb-6">
+            <div className="w-14 h-14 rounded-full border dark:border-zinc-700 bg-zinc-200 dark:bg-zinc-700 animate-pulse" />
+            <div>
+              <div className="h-6 w-32 bg-zinc-200 dark:bg-zinc-700 rounded mb-2 animate-pulse" />
+              <div className="h-4 w-16 bg-zinc-200 dark:bg-zinc-700 rounded animate-pulse" />
+            </div>
+          </div>
+
+          {/* Add Form (Disabled During Loading) */}
+          <form className="flex flex-col sm:flex-row gap-3 mb-6">
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Enter your name"
+              className="flex-1 px-4 py-2 border rounded-xl bg-white shadow-md shadow-zinc-800/5 placeholder:text-zinc-400 focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/10 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:placeholder:text-zinc-500 dark:focus:border-teal-400 dark:focus:ring-teal-400/10"
+              maxLength={50}
+              disabled
+            />
+            <button
+              type="submit"
+              disabled
+              className="flex items-center justify-center px-4 py-2 bg-teal-500 text-white rounded-xl opacity-50"
+            >
+              Add
+            </button>
+          </form>
+
+          {/* Search (Disabled During Loading) */}
+          <input
+            value={searchTerm}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setCurrentPage(1);
+            }}
+            placeholder="Search guests..."
+            className="mb-6 w-full px-4 py-2 border rounded-xl bg-white shadow-md shadow-zinc-800/5 placeholder:text-zinc-400 focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/10 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:placeholder:text-zinc-500 dark:focus:border-teal-400 dark:focus:ring-teal-400/10"
+            disabled
+          />
+
+          {/* Guest Count */}
+          <p className="mb-4 text-sm text-zinc-600 dark:text-zinc-400">
+            Total Guests: {filteredGuests.length}
+          </p>
+
+          {/* Guest List with Initial Data */}
+          <ul className="space-y-4">
+            <AnimatePresence>
+              {filteredGuests.length === 0 ? (
+                <motion.p
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="text-center text-zinc-600 dark:text-zinc-400"
+                >
+                  {searchTerm ? `No guests found matching "${searchTerm}".` : "No guests yet. Add the first! 🚀"}
+                </motion.p>
+              ) : (
+                displayedGuests.map((g) => (
+                  <motion.li
+                    key={g.id}
+                    layout
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    transition={{ duration: 0.2 }}
+                    className="p-2 rounded-xl border dark:border-zinc-700 shadow-sm flex justify-between items-center dark:bg-zinc-800 group"
+                  >
+                    <div className="flex-1">
+                      <h3 className="font-semibold dark:text-white break-words">{g.name}</h3>
+                      <p className="text-xs text-zinc-600 dark:text-zinc-400">
+                        Added by {g.addedBy || 'Unknown'} •{' '}
+                        {g.createdAt ? new Date(g.createdAt).toLocaleDateString() : 'Date unknown'}
+                      </p>
+                    </div>
+                  </motion.li>
+                ))
+              )}
+            </AnimatePresence>
+          </ul>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex justify-center items-center mt-6 gap-2 overflow-x-auto pb-2">
+              <button
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="flex items-center px-3 py-2 rounded-lg text-sm bg-zinc-200 dark:bg-zinc-700 hover:bg-teal-100 dark:hover:bg-teal-700 text-black dark:text-white disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                aria-label="Previous page"
+              >
+                <ChevronLeftIcon className="h-4 w-4 mr-1 stroke-current" />
+                Prev
+              </button>
+
+              {Array.from({ length: totalPages }, (_, idx) => (
+                <button
+                  key={idx + 1}
+                  onClick={() => setCurrentPage(idx + 1)}
+                  className={clsx(
+                    'px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-teal-500',
+                    currentPage === idx + 1
+                      ? 'bg-teal-500 text-white shadow-md'
+                      : 'bg-zinc-200 dark:bg-zinc-700 hover:bg-teal-100 dark:hover:bg-teal-700 text-black dark:text-white',
+                  )}
+                  aria-label={`Go to page ${idx + 1}`}
+                  aria-current={currentPage === idx + 1 ? 'page' : undefined}
+                >
+                  {idx + 1}
+                </button>
+              ))}
+
+              <button
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="flex items-center px-3 py-2 rounded-lg text-sm bg-zinc-200 dark:bg-zinc-700 hover:bg-teal-100 dark:hover:bg-teal-700 text-black dark:text-white disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                aria-label="Next page"
+              >
+                Next
+                <ChevronRightIcon className="h-4 w-4 ml-1 stroke-current" />
+              </button>
+            </div>
+          )}
+        </div>
+
+        <ScrollToTopButton />
+      </>
+    );
+  }
+
+  // Main Authenticated View (when session is loaded)
   return (
     <>
       <Head>
@@ -533,35 +685,30 @@ export default function GuestlistPage({ initialGuests }) {
 export async function getServerSideProps(context) {
   const session = await getServerSession(context.req, context.res, authOptions);
 
-  if (!session) {
-    return {
-      props: {
-        initialGuests: [],
-      },
-    };
+  let initialGuests = [];
+  if (session) {
+    try {
+      const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
+      const host = context.req.headers.host || 'localhost:3000';
+      const baseUrl = `${protocol}://${host}`;
+      const res = await fetch(`${baseUrl}/api/guestlist-test`, {
+        headers: {
+          cookie: context.req.headers.cookie || '',
+        },
+      });
+      if (res.ok) {
+        initialGuests = await res.json();
+        if (!Array.isArray(initialGuests)) initialGuests = [];
+      }
+    } catch (error) {
+      console.error('SSR Fetch Error:', error);
+    }
   }
 
-  try {
-    const res = await fetch(`${process.env.NEXTAUTH_URL}/api/guestlist-test`, {
-      headers: {
-        cookie: context.req.headers.cookie || '',
-      },
-    });
-
-    const guests = await res.json();
-
-    return {
-      props: {
-        initialGuests: Array.isArray(guests) ? guests : [],
-      },
-    };
-  } catch (error) {
-    console.error("SSR Fetch Error:", error);
-    return {
-      props: {
-        initialGuests: [],
-      },
-    };
-  }
+  return {
+    props: {
+      initialGuests,
+      isAuthenticated: !!session, // Pass whether the user is authenticated
+    },
+  };
 }
-

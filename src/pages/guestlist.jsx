@@ -219,18 +219,16 @@ export default function GuestlistPage({ initialGuests, isAuthenticated }) {
     }, []);
 
     return (
-      <motion.button
+      <button
         onClick={scrollToTop}
         className={clsx(
-          'fixed bottom-6 right-6 p-3 rounded-full bg-teal-600 text-white shadow-lg hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 dark:focus:ring-offset-zinc-900 transition-opacity duration-300',
+          'fixed bottom-6 right-6 p-3 rounded-full bg-teal-500 text-white shadow-lg hover:bg-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 dark:focus:ring-offset-zinc-800 transition-opacity duration-300',
           isVisible ? 'opacity-100' : 'opacity-0 pointer-events-none',
         )}
         aria-label="Scroll to top"
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.95 }}
       >
         <ArrowUpIcon className="h-5 w-5" />
-      </motion.button>
+      </button>
     );
   }
 
@@ -242,15 +240,15 @@ export default function GuestlistPage({ initialGuests, isAuthenticated }) {
         <Head>
           <title>Loading Guest List...</title>
         </Head>
-        <div className="min-h-screen flex flex-col justify-center items-center p-8 text-center bg-zinc-50 dark:bg-zinc-900">
+        <div className="min-h-screen flex justify-center items-center p-8 text-center">
           <motion.div
             animate={{ rotate: 360 }}
-            transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}
+            transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
             className="inline-block"
           >
-            <FaSpinner className="text-teal-600 text-4xl" />
+            <FaSpinner className="text-teal-500 text-3xl" />
           </motion.div>
-          <p className="mt-4 text-lg font-medium text-zinc-600 dark:text-zinc-300">Loading...</p>
+          <p className="mt-2 text-zinc-600 dark:text-zinc-400">Loading...</p>
         </div>
       </>
     );
@@ -264,35 +262,27 @@ export default function GuestlistPage({ initialGuests, isAuthenticated }) {
           <title>Guestlist - Saurabh Kirve</title>
           <meta name="description" content="Sign in to add your name to the guest list." />
         </Head>
-        <div className="min-h-screen flex flex-col justify-center items-center gap-8 px-6 py-12 bg-gradient-to-b from-zinc-50 to-zinc-100 dark:from-zinc-900 dark:to-zinc-800">
+        <div className="min-h-screen flex flex-col justify-center items-center gap-6 px-6 py-12 bg-zinc-50 dark:bg-zinc-900">
           <Toaster />
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: "easeOut" }}
-            className="text-4xl sm:text-5xl font-bold text-center text-zinc-900 dark:text-zinc-100 leading-tight"
+          <h1
+            className="text-3xl sm:text-5xl font-bold text-center text-zinc-900 dark:text-white"
           >
-            Be My Guest
+            Be my guest
             <br />
-            Add Your Name to the List!
-          </motion.h1>
-          <motion.button
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            and add your name to the list!
+          </h1>
+          <button
             onClick={() => signIn()}
-            className="px-8 py-3 bg-teal-600 text-white font-semibold rounded-xl shadow-lg hover:bg-teal-700 dark:bg-teal-500 dark:hover:bg-teal-600 transition-colors focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 dark:focus:ring-offset-zinc-900"
+            className="px-6 py-3 bg-zinc-800 text-white dark:bg-zinc-700 rounded-xl dark:hover:bg-teal-500 hover:bg-teal-500 hover:scale-105 transition transform focus:outline-none focus:ring-2 focus:ring-teal-500"
           >
             Sign in with GitHub or Google
-          </motion.button>
+          </button>
         </div>
       </>
     );
   }
 
-  // If session is still loading or session is not defined, show loading state with initialGuests
+  // If session is still loading but server confirmed authentication, use initialGuests
   if (status === "loading" || !session) {
     return (
       <>
@@ -301,32 +291,32 @@ export default function GuestlistPage({ initialGuests, isAuthenticated }) {
           <meta name="description" content="Manage the guest list entries" />
         </Head>
 
-        <div className="max-w-2xl mx-auto p-6 sm:p-8 bg-zinc-50 dark:bg-zinc-900 min-h-screen">
+        <div className="max-w-2xl mx-auto p-4 sm:p-6">
           <Toaster />
 
-          {/* Placeholder Avatar Section */}
-          <div className="flex items-center gap-4 mb-8">
-            <div className="w-14 h-14 rounded-full border border-zinc-200 dark:border-zinc-700 bg-zinc-200 dark:bg-zinc-800 animate-pulse" />
-            <div className="space-y-2">
-              <div className="h-6 w-32 bg-zinc-200 dark:bg-zinc-800 rounded animate-pulse" />
-              <div className="h-4 w-16 bg-zinc-200 dark:bg-zinc-800 rounded animate-pulse" />
+          {/* Placeholder Avatar Section (since session is loading) */}
+          <div className="flex items-center gap-4 mb-6">
+            <div className="w-14 h-14 rounded-full border dark:border-zinc-700 bg-zinc-200 dark:bg-zinc-700 animate-pulse" />
+            <div>
+              <div className="h-6 w-32 bg-zinc-200 dark:bg-zinc-700 rounded mb-2 animate-pulse" />
+              <div className="h-4 w-16 bg-zinc-200 dark:bg-zinc-700 rounded animate-pulse" />
             </div>
           </div>
 
           {/* Add Form (Disabled During Loading) */}
-          <form className="flex flex-col sm:flex-row gap-4 mb-8">
+          <form className="flex flex-col sm:flex-row gap-3 mb-6">
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Enter your name"
-              className="flex-1 px-4 py-3 border border-zinc-200 dark:border-zinc-700 rounded-xl bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all shadow-sm"
+              className="flex-1 px-4 py-2 border rounded-xl bg-white shadow-md shadow-zinc-800/5 placeholder:text-zinc-400 focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/10 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:placeholder:text-zinc-500 dark:focus:border-teal-400 dark:focus:ring-teal-400/10"
               maxLength={50}
               disabled
             />
             <button
               type="submit"
               disabled
-              className="px-6 py-3 bg-teal-500 text-white rounded-xl font-semibold opacity-50 cursor-not-allowed"
+              className="flex items-center justify-center px-4 py-2 bg-teal-500 text-white rounded-xl opacity-50"
             >
               Add
             </button>
@@ -340,26 +330,25 @@ export default function GuestlistPage({ initialGuests, isAuthenticated }) {
               setCurrentPage(1);
             }}
             placeholder="Search guests..."
-            className="w-full px-4 py-3 border border-zinc-200 dark:border-zinc-700 rounded-xl bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all mb-8 shadow-sm"
+            className="mb-6 w-full px-4 py-2 border rounded-xl bg-white shadow-md shadow-zinc-800/5 placeholder:text-zinc-400 focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/10 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:placeholder:text-zinc-500 dark:focus:border-teal-400 dark:focus:ring-teal-400/10"
             disabled
           />
 
           {/* Guest Count */}
-          <p className="mb-4 text-sm font-medium text-zinc-600 dark:text-zinc-400">
+          <p className="mb-4 text-sm text-zinc-600 dark:text-zinc-400">
             Total Guests: {filteredGuests.length}
           </p>
 
           {/* Guest List with Initial Data */}
-          <div className="max-h-[50vh] overflow-y-auto mb-8 rounded-xl border border-zinc-200 dark:border-zinc-700 shadow-sm">
-            <ul className="space-y-4 p-4">
+          <div className="max-h-[50vh] overflow-y-auto mb-6">
+            <ul className="space-y-4">
               <AnimatePresence>
                 {filteredGuests.length === 0 ? (
                   <motion.p
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className="text-center text-zinc-600 dark:text-zinc-400 font-medium"
+                    className="text-center text-zinc-600 dark:text-zinc-400"
                   >
                     {searchTerm ? `No guests found matching "${searchTerm}".` : "No guests yet. Add the first! 🚀"}
                   </motion.p>
@@ -367,11 +356,11 @@ export default function GuestlistPage({ initialGuests, isAuthenticated }) {
                   displayedGuests.map((g) => (
                     <li
                       key={g.id}
-                      className="p-4 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 flex justify-between items-center shadow-sm opacity-100"
+                      className="p-2 rounded-xl border dark:border-zinc-700 shadow-sm flex justify-between items-center dark:bg-zinc-800 group opacity-100"
                     >
                       <div className="flex-1">
-                        <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 break-words">{g.name}</h3>
-                        <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                        <h3 className="font-semibold dark:text-white break-words">{g.name}</h3>
+                        <p className="text-xs text-zinc-600 dark:text-zinc-400">
                           Added by {g.addedBy || 'Unknown'} •{' '}
                           {g.createdAt ? new Date(g.createdAt).toLocaleDateString() : 'Date unknown'}
                         </p>
@@ -385,49 +374,43 @@ export default function GuestlistPage({ initialGuests, isAuthenticated }) {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex justify-center items-center gap-2 overflow-x-auto pb-4">
-              <motion.button
+            <div className="flex justify-center items-center mt-6 gap-2 overflow-x-auto pb-2">
+              <button
                 onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
-                className="flex items-center px-4 py-2 rounded-lg text-sm bg-zinc-200 dark:bg-zinc-700 hover:bg-teal-100 dark:hover:bg-teal-600 text-zinc-900 dark:text-zinc-100 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-teal-500 shadow-sm"
+                className="flex items-center px-3 py-2 rounded-lg text-sm bg-zinc-200 dark:bg-zinc-700 hover:bg-teal-100 dark:hover:bg-teal-700 text-black dark:text-white disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-teal-500"
                 aria-label="Previous page"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
               >
                 <ChevronLeftIcon className="h-4 w-4 mr-1 stroke-current" />
                 Prev
-              </motion.button>
+              </button>
 
               {Array.from({ length: totalPages }, (_, idx) => (
-                <motion.button
+                <button
                   key={idx + 1}
                   onClick={() => setCurrentPage(idx + 1)}
                   className={clsx(
-                    'px-4 py-2 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-teal-500 shadow-sm',
+                    'px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-teal-500',
                     currentPage === idx + 1
-                      ? 'bg-teal-600 text-white'
-                      : 'bg-zinc-200 dark:bg-zinc-700 hover:bg-teal-100 dark:hover:bg-teal-600 text-zinc-900 dark:text-zinc-100',
+                      ? 'bg-teal-500 text-white shadow-md'
+                      : 'bg-zinc-200 dark:bg-zinc-700 hover:bg-teal-100 dark:hover:bg-teal-700 text-black dark:text-white',
                   )}
                   aria-label={`Go to page ${idx + 1}`}
                   aria-current={currentPage === idx + 1 ? 'page' : undefined}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
                 >
                   {idx + 1}
-                </motion.button>
+                </button>
               ))}
 
-              <motion.button
+              <button
                 onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                 disabled={currentPage === totalPages}
-                className="flex items-center px-4 py-2 rounded-lg text-sm bg-zinc-200 dark:bg-zinc-700 hover:bg-teal-100 dark:hover:bg-teal-600 text-zinc-900 dark:text-zinc-100 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-teal-500 shadow-sm"
+                className="flex items-center px-3 py-2 rounded-lg text-sm bg-zinc-200 dark:bg-zinc-700 hover:bg-teal-100 dark:hover:bg-teal-700 text-black dark:text-white disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-teal-500"
                 aria-label="Next page"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
               >
                 Next
                 <ChevronRightIcon className="h-4 w-4 ml-1 stroke-current" />
-              </motion.button>
+              </button>
             </div>
           )}
         </div>
@@ -445,106 +428,75 @@ export default function GuestlistPage({ initialGuests, isAuthenticated }) {
         <meta name="description" content="Manage the guest list entries" />
       </Head>
 
-      <div className="max-w-2xl mx-auto p-6 sm:p-8 bg-zinc-50 dark:bg-zinc-900 min-h-screen">
+      <div className="max-w-2xl mx-auto p-4 sm:p-6">
         <Toaster />
 
         {/* Avatar Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: "easeOut" }}
-          className="flex items-center gap-4 mb-8"
-        >
+        <div className="flex items-center gap-4 mb-6">
           <img
             src={session?.user?.image || '/default-avatar.png'}
             alt={`${session?.user?.name || 'User'}'s avatar`}
-            className="w-14 h-14 rounded-full border border-zinc-200 dark:border-zinc-700 shadow-sm"
+            className="w-14 h-14 rounded-full border dark:border-zinc-700"
           />
           <div>
-            <h2 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-100">{session?.user?.name || 'User'}</h2>
-            <motion.button
+            <h2 className="text-2xl font-semibold dark:text-white">{session?.user?.name || 'User'}</h2>
+            <button
               onClick={() => signOut()}
-              className="text-sm text-teal-600 dark:text-teal-400 hover:underline focus:outline-none focus:ring-2 focus:ring-teal-500 rounded"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              className="text-sm text-teal-500 hover:underline focus:outline-none focus:ring-2 focus:ring-teal-500 rounded"
             >
               Sign Out
-            </motion.button>
+            </button>
           </div>
-        </motion.div>
+        </div>
 
         {/* Add Form */}
-        <motion.form
-          onSubmit={addGuest}
-          className="flex flex-col sm:flex-row gap-4 mb-8"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1, ease: "easeOut" }}
-        >
-          <motion.input
+        <form onSubmit={addGuest} className="flex flex-col sm:flex-row gap-3 mb-6">
+          <input
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Enter your name"
-            className="flex-1 px-4 py-3 border border-zinc-200 dark:border-zinc-700 rounded-xl bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all shadow-sm"
+            className="flex-1 px-4 py-2 border rounded-xl bg-white shadow-md shadow-zinc-800/5 placeholder:text-zinc-400 focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/10 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:placeholder:text-zinc-500 dark:focus:border-teal-400 dark:focus:ring-teal-400/10"
             maxLength={50}
-            whileFocus={{ scale: 1.02 }}
           />
-          <motion.button
+          <button
             type="submit"
             disabled={loading}
-            className="px-6 py-3 bg-teal-600 hover:bg-teal-700 text-white rounded-xl font-semibold transition-colors disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 dark:focus:ring-offset-zinc-900 shadow-sm"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            className="flex items-center justify-center px-4 py-2 bg-teal-500 hover:bg-teal-600 text-white rounded-xl transition transform hover:scale-105 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-teal-500"
           >
-            {loading ? <FaSpinner className="animate-spin text-xl" /> : "Add"}
-          </motion.button>
-        </motion.form>
+            {loading ? <FaSpinner className="animate-spin" /> : "Add"}
+          </button>
+        </form>
 
         {/* Search */}
-        <motion.input
+        <input
           value={searchTerm}
           onChange={(e) => {
             setSearchTerm(e.target.value);
             setCurrentPage(1);
           }}
           placeholder="Search guests..."
-          className="w-full px-4 py-3 border border-zinc-200 dark:border-zinc-700 rounded-xl bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all mb-8 shadow-sm"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2, ease: "easeOut" }}
-          whileFocus={{ scale: 1.02 }}
+          className="mb-6 w-full px-4 py-2 border rounded-xl bg-white shadow-md shadow-zinc-800/5 placeholder:text-zinc-400 focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/10 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:placeholder:text-zinc-500 dark:focus:border-teal-400 dark:focus:ring-teal-400/10"
         />
 
         {/* Guest Count */}
-        <motion.p
-          className="mb-4 text-sm font-medium text-zinc-600 dark:text-zinc-400"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.3, ease: "easeOut" }}
-        >
+        <p className="mb-4 text-sm text-zinc-600 dark:text-zinc-400">
           Total Guests: {filteredGuests.length}
-        </motion.p>
+        </p>
 
         {/* Guest List */}
-        <motion.div
-          className="max-h-[50vh] overflow-y-auto mb-8 rounded-xl border border-zinc-200 dark:border-zinc-700 shadow-sm"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.4, ease: "easeOut" }}
-        >
-          <ul className="space-y-4 p-4">
+        <div className="max-h-[50vh] overflow-y-auto mb-6">
+          <ul className="space-y-4">
             <AnimatePresence>
               {fetchError ? (
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  transition={{ duration: 0.3 }}
                   className="text-center text-zinc-600 dark:text-zinc-400"
                 >
                   <p className="text-lg font-semibold">Failed to Load Guest List</p>
                   <p className="mt-2">{fetchError}</p>
-                  <motion.button
+                  <button
                     onClick={() => {
                       setFetchingGuests(true);
                       setFetchError(null);
@@ -557,12 +509,10 @@ export default function GuestlistPage({ initialGuests, isAuthenticated }) {
                         })
                         .finally(() => setFetchingGuests(false));
                     }}
-                    className="mt-4 px-6 py-2 rounded-xl bg-teal-600 text-white hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 shadow-sm"
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
+                    className="mt-4 px-4 py-2 rounded-xl bg-teal-500 text-white hover:bg-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-500"
                   >
                     Retry
-                  </motion.button>
+                  </button>
                 </motion.div>
               ) : fetchingGuests ? (
                 Array.from({ length: guestsPerPage }).map((_, idx) => (
@@ -571,8 +521,7 @@ export default function GuestlistPage({ initialGuests, isAuthenticated }) {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className="p-4 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 flex justify-between items-center shadow-sm animate-pulse"
+                    className="p-2 rounded-xl border dark:border-zinc-700 shadow-sm flex justify-between items-center dark:bg-zinc-800 animate-pulse"
                   >
                     <div className="flex-1">
                       <div className="h-5 w-3/4 bg-zinc-200 dark:bg-zinc-700 rounded mb-2" />
@@ -589,59 +538,47 @@ export default function GuestlistPage({ initialGuests, isAuthenticated }) {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  transition={{ duration: 0.3 }}
-                  className="text-center text-zinc-600 dark:text-zinc-400 font-medium"
+                  className="text-center text-zinc-600 dark:text-zinc-400"
                 >
                   {searchTerm ? `No guests found matching "${searchTerm}".` : "No guests yet. Add the first! 🚀"}
                 </motion.p>
               ) : (
-                displayedGuests.map((g, index) => (
-                  <motion.li
+                displayedGuests.map((g) => (
+                  <li
                     key={g.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 10 }}
-                    transition={{ duration: 0.3, delay: index * 0.05 }}
-                    className="p-4 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 flex justify-between items-center shadow-sm hover:shadow-md transition-shadow group"
+                    className="p-2 rounded-xl border dark:border-zinc-700 shadow-sm flex justify-between items-center dark:bg-zinc-800 group opacity-100"
                   >
                     <div className="flex-1">
                       {editingId === g.id ? (
-                        <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
-                          <motion.input
+                        <div className="flex flex-col sm:flex-row gap-2 items-start sm:items-center">
+                          <input
                             value={editedName}
                             onChange={(e) => setEditedName(e.target.value)}
-                            className="px-3 py-2 border border-zinc-200 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-200 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all w-full sm:w-auto shadow-sm"
+                            className="px-2 py-1 border rounded bg-white shadow-md shadow-zinc-800/5 focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/10 dark:border-zinc-700 dark:bg-zinc-700 dark:text-zinc-200 dark:focus:border-teal-400 dark:focus:ring-teal-400/10 w-full sm:w-auto"
                             maxLength={50}
                             autoFocus
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ duration: 0.2 }}
                           />
                           <div className="flex gap-2 mt-2 sm:mt-0 flex-shrink-0">
-                            <motion.button
+                            <button
                               onClick={() => updateGuest(g.id)}
                               disabled={loading}
-                              className="text-teal-600 dark:text-teal-400 hover:underline text-sm disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-teal-500 rounded"
-                              whileHover={{ scale: 1.05 }}
-                              whileTap={{ scale: 0.95 }}
+                              className="text-green-500 hover:underline text-sm disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-green-500 rounded"
                             >
                               {loading ? <FaSpinner className="animate-spin" /> : "Save"}
-                            </motion.button>
-                            <motion.button
+                            </button>
+                            <button
                               onClick={() => setEditingId(null)}
                               disabled={loading}
-                              className="text-zinc-500 dark:text-zinc-400 hover:underline text-sm focus:outline-none focus:ring-2 focus:ring-zinc-400 rounded"
-                              whileHover={{ scale: 1.05 }}
-                              whileTap={{ scale: 0.95 }}
+                              className="text-gray-400 hover:underline text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 rounded"
                             >
                               Cancel
-                            </motion.button>
+                            </button>
                           </div>
                         </div>
                       ) : (
                         <>
-                          <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 break-words">{g.name}</h3>
-                          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                          <h3 className="font-semibold dark:text-white break-words">{g.name}</h3>
+                          <p className="text-xs text-zinc-600 dark:text-zinc-400">
                             Added by {g.addedBy || 'Unknown'} •{' '}
                             {g.createdAt ? new Date(g.createdAt).toLocaleDateString() : 'Date unknown'}
                           </p>
@@ -658,88 +595,73 @@ export default function GuestlistPage({ initialGuests, isAuthenticated }) {
                           'opacity-100'
                         )}
                       >
-                        <motion.button
+                        <button
                           onClick={() => {
                             setEditingId(g.id);
                             setEditedName(g.name);
                           }}
-                          className="text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
+                          className="text-blue-400 hover:text-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
                           aria-label={`Edit guest: ${g.name}`}
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
                         >
                           ✏️
-                        </motion.button>
-                        <motion.button
+                        </button>
+                        <button
                           onClick={() => deleteGuest(g.id)}
                           disabled={loading}
-                          className="text-red-500 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300 focus:outline-none focus:ring-2 focus:ring-red-500 rounded disabled:opacity-50"
+                          className="text-red-400 hover:text-red-500 focus:outline-none focus:ring-2 focus:ring-red-500 rounded disabled:opacity-50"
                           aria-label={`Delete guest: ${g.name}`}
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
                         >
                           🗑️
-                        </motion.button>
+                        </button>
                       </div>
                     )}
-                  </motion.li>
+                  </li>
                 ))
               )}
             </AnimatePresence>
           </ul>
-        </motion.div>
+        </div>
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <motion.div
-            className="flex justify-center items-center gap-2 overflow-x-auto pb-4"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.5, ease: "easeOut" }}
-          >
-            <motion.button
+          <div className="flex justify-center items-center mt-6 gap-2 overflow-x-auto pb-4">
+            <button
               onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
               disabled={currentPage === 1}
-              className="flex items-center px-4 py-2 rounded-lg text-sm bg-zinc-200 dark:bg-zinc-700 hover:bg-teal-100 dark:hover:bg-teal-600 text-zinc-900 dark:text-zinc-100 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-teal-500 shadow-sm"
+              className="flex items-center px-3 py-2 rounded-lg text-sm bg-zinc-200 dark:bg-zinc-700 hover:bg-teal-100 dark:hover:bg-teal-700 text-black dark:text-white disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-teal-500"
               aria-label="Previous page"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
             >
               <ChevronLeftIcon className="h-4 w-4 mr-1 stroke-current" />
               Prev
-            </motion.button>
+            </button>
 
             {Array.from({ length: totalPages }, (_, idx) => (
-              <motion.button
+              <button
                 key={idx + 1}
                 onClick={() => setCurrentPage(idx + 1)}
                 className={clsx(
-                  'px-4 py-2 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-teal-500 shadow-sm',
+                  'px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-teal-500',
                   currentPage === idx + 1
-                    ? 'bg-teal-600 text-white'
-                    : 'bg-zinc-200 dark:bg-zinc-700 hover:bg-teal-100 dark:hover:bg-teal-600 text-zinc-900 dark:text-zinc-100',
+                    ? 'bg-teal-500 text-white shadow-md'
+                    : 'bg-zinc-200 dark:bg-zinc-700 hover:bg-teal-100 dark:hover:bg-teal-700 text-black dark:text-white',
                 )}
                 aria-label={`Go to page ${idx + 1}`}
                 aria-current={currentPage === idx + 1 ? 'page' : undefined}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
               >
                 {idx + 1}
-              </motion.button>
+              </button>
             ))}
 
-            <motion.button
+            <button
               onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages}
-              className="flex items-center px-4 py-2 rounded-lg text-sm bg-zinc-200 dark:bg-zinc-700 hover:bg-teal-100 dark:hover:bg-teal-600 text-zinc-900 dark:text-zinc-100 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-teal-500 shadow-sm"
+              className="flex items-center px-3 py-2 rounded-lg text-sm bg-zinc-200 dark:bg-zinc-700 hover:bg-teal-100 dark:hover:bg-teal-700 text-black dark:text-white disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-teal-500"
               aria-label="Next page"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
             >
               Next
               <ChevronRightIcon className="h-4 w-4 ml-1 stroke-current" />
-            </motion.button>
-          </motion.div>
+            </button>
+          </div>
         )}
       </div>
 

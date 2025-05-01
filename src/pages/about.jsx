@@ -65,45 +65,37 @@ export default function About() {
             </h1>
             <div className="mt-6 space-y-7 text-base text-zinc-600 dark:text-zinc-400">
               <p>
-                I’ve loved making things for as long as I can remember, and
-                wrote my first program when I was 6 years old, just two weeks
-                after my mom brought home the brand new Macintosh LC 550 that I
-                taught myself to type on.
+              I’ve always been fascinated by how things work — especially games. As a kid, I’d spend hours playing, until one day curiosity got the better of me: How are these even made? That simple question led me down the rabbit hole of coding, and I’ve never looked back.
               </p>
               <p>
-                The only thing I loved more than computers as a kid was space.
-                When I was 8, I climbed the 40-foot oak tree at the back of our
-                yard while wearing my older sister’s motorcycle helmet, counted
-                down from three, and jumped — hoping the tree was tall enough
-                that with just a bit of momentum I’d be able to get to orbit.
+              One of my earliest “programming adventures” came when I was just trying to run a cracked game that refused to launch. After a frustrating night of trial and error, I ended up writing a short script to bypass the issue — and that tiny win felt like a superpower.
               </p>
               <p>
-                I spent the next few summers indoors working on a rocket design,
-                while I recovered from the multiple surgeries it took to fix my
-                badly broken legs. It took nine iterations, but when I was 15 I
-                sent my dad’s Blackberry into orbit and was able to transmit a
-                photo back down to our family computer from space.
+              I wasn’t always gentle with my machines either. I used to leave my PC on overnight all the time — eventually frying the power supply. My parents weren’t thrilled, but I learned a valuable lesson: curiosity has a cost.
+
+By 11th grade, I’d built my first real project — a basic CRUD app — and the feeling of bringing an idea to life through code was addictive. Of course, back then, we didn’t have AI to debug our code. It was just me, Stack Overflow, and some very sketchy forum advice. It was brutal — and kind of awesome.
               </p>
               <p>
-                Today, I’m the founder of Planetaria, where we’re working on
-                civilian space suits and manned shuttle kits you can assemble at
-                home so that the next generation of kids really <em>can</em>{' '}
-                make it to orbit — from the comfort of their own backyards.
+              Outside of work, I’m a music head. I love producing EDM, especially dubstep — and if you ever catch me mid-track, you’ll know when the drop hits because my head starts banging involuntarily.
+
+These days, I work as a data analyst. Learning new things, building cool stuff, and solving messy problems — that’s what gets me excited. I don’t have a fixed end goal; I just want to keep growing, exploring, and flowing with time.
+
+
               </p>
             </div>
           </div>
           <div className="lg:pl-20">
             <ul role="list">
-              <SocialLink href="#" icon={TwitterIcon}>
+              <SocialLink href="https://twitter.com/sxurxbh" icon={TwitterIcon}>
                 Follow on Twitter
               </SocialLink>
-              <SocialLink href="#" icon={InstagramIcon} className="mt-4">
+              <SocialLink href="https://www.instagram.com/whosaurabh/" icon={InstagramIcon} className="mt-4">
                 Follow on Instagram
               </SocialLink>
-              <SocialLink href="#" icon={GitHubIcon} className="mt-4">
+              <SocialLink href="https://github.com/Sxurabh" icon={GitHubIcon} className="mt-4">
                 Follow on GitHub
               </SocialLink>
-              <SocialLink href="#" icon={LinkedInIcon} className="mt-4">
+              <SocialLink href="https://www.linkedin.com/in/saurabhkirve" icon={LinkedInIcon} className="mt-4">
                 Follow on LinkedIn
               </SocialLink>
               <SocialLink

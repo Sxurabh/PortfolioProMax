@@ -16,8 +16,6 @@ import image2 from '@/images/photos/image-2.jpg';
 import image3 from '@/images/photos/image-3.jpg';
 import image4 from '@/images/photos/image-4.jpg';
 import image5 from '@/images/photos/image-5.jpg';
-import logoAirbnb from '@/images/logos/airbnb.svg';
-import logoFacebook from '@/images/logos/facebook.svg';
 import logoPlanetaria from '@/images/logos/planetaria.svg';
 import logoStarbucks from '@/images/logos/starbucks.svg';
 import { formatDate } from '@/lib/formatDate';
@@ -147,7 +145,7 @@ function Article({ article }) {
 function SocialLink({ icon: Icon, ...props }) {
   return (
     <Link className="group -m-1 p-1 focus:outline-none focus:ring-2 focus:ring-teal-500 rounded-full" {...props}>
-      <Icon className="h-6 w-6 fill-zinc-500 transition group-hover:fill-zinc-600 dark:fill-zinc-400 dark:group-hover:fill-zinc-300" />
+      <Icon className="h-6 w-6 fill-zinc-500 transition group-hover:fill-teal-600 dark:fill-zinc-400 dark:group-hover:fill-teal-300" />
     </Link>
   );
 }
@@ -426,7 +424,7 @@ export default function Home({ articles, totalPages, currentPage }) {
             dashboards and pivot tables for effective storytelling. Ready to contribute
             to business growth through actionable insights.
           </p>
-          <div className="mt-4 sm:mt-6 flex flex-wrap gap-4 sm:gap-6">
+          <div className="mt-4 sm:mt-6 flex flex-wrap gap-4 sm:gap-6 hover:teal-">
             <SocialLink
               href="https://twitter.com/sxurxbh"
               aria-label="Follow on Twitter"

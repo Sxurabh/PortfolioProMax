@@ -281,13 +281,20 @@ function Resume() {
         <Button
           href="/cv.pdf"
           variant="secondary"
-          className="group w-full sm:w-auto hover:bg-teal-400 hover:text-white dark:hover:bg-teal-500 dark:hover:text-white"
+          className={clsx(
+            'group flex items-center justify-center rounded-md border border-transparent px-4 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 dark:focus:ring-offset-zinc-800 transition-all duration-300',
+            isAdmin
+              ? 'w-full sm:w-1/2 bg-teal-500 text-white hover:bg-teal-600 dark:hover:bg-teal-600'
+              : 'w-full bg-teal-500 text-white hover:bg-teal-600 dark:hover:bg-teal-600'
+          )}
         >
           Download CV
-          <ArrowDownIcon className="h-4 w-4 stroke-zinc-400 transition group-active:stroke-zinc-600 dark:group-hover:stroke-zinc-50 dark:group-active:stroke-zinc-50" />
+          <ArrowDownIcon className="ml-2 h-4 w-4 stroke-white transition group-active:stroke-white dark:group-hover:stroke-white dark:group-active:stroke-white" />
         </Button>
         {isAdmin && (
-          <label className="w-full sm:w-auto">
+          <label
+            className="w-full sm:w-1/2 flex items-center justify-center"
+          >
             <input
               type="file"
               accept="application/pdf"
@@ -295,7 +302,7 @@ function Resume() {
               className="hidden"
             />
             <span
-              className="inline-flex items-center justify-center rounded-md border border-transparent bg-teal-500 px-4 py-2 text-sm font-medium text-white hover:bg-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 dark:focus:ring-offset-zinc-800 cursor-pointer"
+              className="inline-flex items-center justify-center w-full rounded-md border border-transparent bg-teal-600 px-4 py-2 text-sm font-medium text-white hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 dark:focus:ring-offset-zinc-800 cursor-pointer transition-all duration-300"
             >
               Upload CV
             </span>
@@ -308,7 +315,6 @@ function Resume() {
     </div>
   );
 }
-
 function Photos() {
   let rotations = ['rotate-2', '-rotate-2', 'rotate-2', 'rotate-2', '-rotate-2'];
 

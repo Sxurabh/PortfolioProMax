@@ -288,7 +288,7 @@ export default function GuestlistPage({ initialGuests, isAuthenticated }) {
           <title>Guestlist - Saurabh Kirve</title>
           <meta name="description" content="Sign in to add your name to the guest list." />
         </Head>
-        <div className="min-h-screen flex flex-col justify-center items-center gap-8 px-6 py-12 bg-gradient-to-b from-zinc-50 to-zinc-100 dark:from-zinc-900 dark:to-zinc-800">
+        <div className="min-h-screen flex flex-col justify-center items-center gap-8 px-6 py-12  from-zinc-50 to-zinc-100 dark:from-zinc-900 dark:to-zinc-800">
           <Toaster />
           <h1 className="text-4xl sm:text-5xl font-bold text-center text-zinc-900 dark:text-zinc-100 leading-tight max-w-md">
             Be My Guest<br />Add Your Name to the List!

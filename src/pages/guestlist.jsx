@@ -400,7 +400,7 @@ export default function GuestlistPage({ initialGuests, isAuthenticated }) {
         <meta name="description" content="Manage the guest list entries" />
       </Head>
 
-      <div className="max-w-2xl mx-auto p-6 sm:p-8 bg-zinc-50 dark:bg-zinc-900 min-h-screen">
+      <div className="max-w-2xl mx-auto p-6 sm:p-8 bg-zinc dark:bg-zinc-900 min-h-screen">
         <Toaster />
 
         {/* Avatar Section */}
